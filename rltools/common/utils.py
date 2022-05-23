@@ -29,9 +29,21 @@ def soft_update(target, online, rho):
         pt.data.copy_(rho * pt.data + (1. - rho) * po.data)
 
 
+class TruncatedTanhTransform(td.transforms.TanhTransform):
+    _lim = .9999997
+
+    def _inverse(self, y):
+        y = torch.clamp(y, min=-self._lim, max=self._lim)
+        return y.atanh()
+
+
 def softplus(param):
     param = torch.maximum(param, torch.full_like(param, -18.))
     return F.softplus(param) + 1e-8
+
+
+def sigmoid(param, lower_lim=0., upper_lim=1000.):
+    return lower_lim + (upper_lim - lower_lim)*torch.sigmoid(param)
 
 
 def make_param_group(*modules):
@@ -52,3 +64,15 @@ def retrace(resids, cs, discount, disclam):
         last_val = r + last_val * discount * c
         deltas.append(last_val)
     return torch.stack(deltas).flip(0)
+
+
+def ordinal_logits(logits):
+    delta = 1e-7
+    logits = torch.sigmoid(logits)
+    logits = torch.clamp(logits, min=delta, max=1.-delta)
+    lt = torch.log(logits)
+    gt = torch.log(1.-logits)
+    lt = torch.cumsum(lt, -1)
+    gt = torch.cumsum(gt[..., 1:].flip(-1), -1).flip(-1)
+    gt = F.pad(gt, [0, 1])
+    return lt+gt
