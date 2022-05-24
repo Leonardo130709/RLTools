@@ -66,8 +66,7 @@ def retrace(resids, cs, discount, disclam):
     return torch.stack(deltas).flip(0)
 
 
-def ordinal_logits(logits):
-    delta = 1e-7
+def ordinal_logits(logits, delta=1e-7):
     logits = torch.sigmoid(logits)
     logits = torch.clamp(logits, min=delta, max=1.-delta)
     lt = torch.log(logits)

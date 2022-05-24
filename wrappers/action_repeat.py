@@ -8,14 +8,12 @@ class ActionRepeat(Wrapper):
         super().__init__(env)
         self.fn = frames_number
 
-    # TODO: apply discount from timestep discount
     def step(self, action):
-        """ Sum of rewards ignores task discount factor."""
         rew_sum = 0
         discount = 1.
         for i in range(self.fn):
             timestep = self.env.step(action)
-            rew_sum += timestep.reward
+            rew_sum += discount*timestep.reward
             discount *= timestep.discount
             if timestep.last():
                 break

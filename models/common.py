@@ -1,10 +1,10 @@
 import torch
 import math
-from rltools.common import utils
+from ..common import utils
 nn = torch.nn
 
 
-class QuantileNetwork(nn.Module):
+class QuantileEmbedding(nn.Module):
     def __init__(self, emb_dim, out_dim):
         super().__init__()
         self.emb_dim = emb_dim
@@ -18,7 +18,7 @@ class QuantileNetwork(nn.Module):
         return torch.relu(x)
 
 
-class Embedding(nn.Module):
+class TanhLayerNormEmbedding(nn.Module):
     def __init__(self, *sizes, act=nn.ELU):
         super().__init__()
         self.emb = nn.Sequential(

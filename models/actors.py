@@ -1,11 +1,11 @@
 import torch
-from rltools.common import utils
+from ..common import utils
 nn = torch.nn
 F = torch.nn.functional
 td = torch.distributions
 
 
-class CategoricalAgent(nn.Module):
+class CategoricalActor(nn.Module):
     def __init__(self, obs_dim, act_dim, act_number, layers=(32, 32), ordinal=False):
         super().__init__()
         self.act_dim = act_dim
@@ -22,10 +22,10 @@ class CategoricalAgent(nn.Module):
 
 
 class ContinuousActor(nn.Module):
-    def __init__(self, in_features, out_features, layers, mean_scale=1, init_std=1.):
+    def __init__(self, obs_dim, act_dim, layers, mean_scale=1, init_std=1.):
         super().__init__()
         self.mean_scale = mean_scale
-        self.mlp = utils.build_mlp(in_features, *layers, 2*out_features)
+        self.mlp = utils.build_mlp(obs_dim, *layers, 2*act_dim)
         self.init_std = torch.log(torch.tensor(init_std).exp() - 1.)
 
     def forward(self, x):
