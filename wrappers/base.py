@@ -1,31 +1,47 @@
-class Wrapper:
-    def __init__(self, env):
+import abc
+from dm_env import TimeStep, Environment
+
+
+class Wrapper(abc.ABC):
+    def __init__(self, env: Environment):
         self.env = env
 
-    def observation(self, timestamp):
-        return timestamp.observation
+    def observation(self, timestep):
+        return timestep.observation
 
-    def reward(self, timestamp):
-        return timestamp.reward
+    def reward(self, timestep):
+        return timestep.reward
 
-    def done(self, timestamp):
-        return timestamp.last()
+    def done(self, timestep):
+        return timestep.last()
 
-    def step(self, action):
-        timestamp = self.env.step(action)
-        obs = self.observation(timestamp)
-        r = self.reward(timestamp)
-        d = self.done(timestamp)
-        return obs, r, d
+    def step_type(self, timestep):
+        return timestep.step_type
 
-    def reset(self):
-        return self.observation(self.env.reset())
+    def discount(self, timestep):
+        return timestep.discount
 
+    def step(self, action) -> TimeStep:
+        timestep = self.env.step(action)
+        return self._wrap_timestep(timestep)
+
+    def reset(self) -> TimeStep:
+        return self._wrap_timestep(self.env.reset())
+
+    def _wrap_timestep(self, timestep) -> TimeStep:
+        return TimeStep(
+            step_type=self.step_type(timestep),
+            reward=self.reward(timestep),
+            discount=self.discount(timestep),
+            observation=self.observation(timestep)
+        )
+
+    # TODO: explicit declaration
     def __getattr__(self, item):
         return getattr(self.env, item)
 
     @property
-    def unwrapped(self):
+    def unwrapped(self) -> Environment:
         if hasattr(self.env, 'unwrapped'):
             return self.env.unwrapped
         else:

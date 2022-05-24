@@ -1,5 +1,5 @@
 from .base import Wrapper
-import numpy as np
+from dm_env import TimeStep
 
 
 class ActionRepeat(Wrapper):
@@ -8,12 +8,21 @@ class ActionRepeat(Wrapper):
         super().__init__(env)
         self.fn = frames_number
 
+    # TODO: apply discount from timestep discount
     def step(self, action):
         """ Sum of rewards ignores task discount factor."""
         rew_sum = 0
+        discount = 1.
         for i in range(self.fn):
-            next_obs, reward, done = self.env.step(action)
-            rew_sum += reward
-            if done:
+            timestep = self.env.step(action)
+            rew_sum += timestep.reward
+            discount *= timestep.discount
+            if timestep.last():
                 break
-        return np.float32(next_obs), np.float32(rew_sum), done
+
+        return TimeStep(
+            step_type=timestep.step_type,
+            reward=rew_sum,
+            discount=discount,
+            observation=timestep.observation
+        )

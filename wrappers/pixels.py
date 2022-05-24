@@ -12,7 +12,7 @@ class PixelsWrapper(Wrapper):
         self.mode = mode
         self._gs_coef = np.array([0.299, 0.587, 0.114])
 
-    def observation(self, timestamp):
+    def observation(self, timestep):
         if self.mode != 'd':
             rgb = self.physics.render(**self.render_kwargs).astype(np.float32)
             rgb /= 255.

@@ -13,11 +13,11 @@ class Monitor(Wrapper):
         return self.env.reset()
 
     def step(self, action):
-        obs, r, d = self.env.step(action)
+        timestep = self.env.step(action)
         state = self.physics.state()
         self._data['states'].append(state)
-        self._data['observations'].append(obs)
-        return obs, r, d
+        self._data['observations'].append(timestep.observation)
+        return timestep
 
     @property
     def data(self):

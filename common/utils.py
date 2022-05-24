@@ -76,3 +76,10 @@ def ordinal_logits(logits):
     gt = torch.cumsum(gt[..., 1:].flip(-1), -1).flip(-1)
     gt = F.pad(gt, [0, 1])
     return lt+gt
+
+
+def dual_loss(loss, epsilon, alpha):
+    """ Constrained loss with lagrange multiplier. """
+    scaled_loss = alpha.detach()*loss
+    mult_loss = alpha*(epsilon - loss.detach())
+    return scaled_loss, mult_loss
