@@ -40,7 +40,7 @@ class ResNet(nn.Module):
             act(),
             nn.Linear(hidden_dim, hidden_dim)
         )
-        self.net = nn.Sequential([make_block() for _ in range(2)])
+        self.net = nn.Sequential(*(make_block() for _ in range(2)))
 
     def forward(self, x):
         return x + self.net(x)

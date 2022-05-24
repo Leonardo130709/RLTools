@@ -31,7 +31,7 @@ class DistributionalCritic(nn.Module):
 
 
 class DistributionalValue(nn.Module):
-    def __init__(self, in_features, layers, quantile_emb):
+    def __init__(self, in_features, layers, quantile_emb=64):
         super().__init__()
         self.qnet = QuantileEmbedding(quantile_emb, in_features)
         self.mlp = utils.build_mlp(in_features, *layers, 1)
