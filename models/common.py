@@ -29,3 +29,18 @@ class TanhLayerNormEmbedding(nn.Module):
 
     def forward(self, x):
         return self.emb(x)
+
+
+class ResNet(nn.Module):
+    def __init__(self, hidden_dim, act=nn.ReLU):
+        super().__init__()
+
+        make_block = lambda: nn.Sequential(
+            nn.LayerNorm(hidden_dim),
+            act(),
+            nn.Linear(hidden_dim, hidden_dim)
+        )
+        self.net = nn.Sequential([make_block() for _ in range(2)])
+
+    def forward(self, x):
+        return x + self.net(x)

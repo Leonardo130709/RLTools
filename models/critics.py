@@ -28,3 +28,14 @@ class DistributionalCritic(nn.Module):
         tau = self.qnet(tau)
         x = torch.cat([obs, action], -1)
         return self.mlp(x*tau)
+
+
+class DistributionalValue(nn.Module):
+    def __init__(self, in_features, layers, quantile_emb):
+        super().__init__()
+        self.qnet = QuantileEmbedding(quantile_emb, in_features)
+        self.mlp = utils.build_mlp(in_features, *layers, 1)
+
+    def forward(self, state, tau):
+        tau = self.qnet(tau)
+        return self.mlp(tau*state)
