@@ -14,7 +14,7 @@ class DiscreteActionWrapper(Wrapper):
     def step(self, action):
         if self.one_hot:
             action = action.argmax(-1)
-        action = np.take_along_axis(self._spacing, action, 0)
+        action = np.take_along_axis(self._spacing, action[None], 0)
         return self.env.step(action)
 
     def action_spec(self):

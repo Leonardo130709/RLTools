@@ -9,18 +9,12 @@ class ActionRepeat(Wrapper):
         self.fn = frames_number
 
     def step(self, action):
-        rew_sum = 0
+        rew_sum = 0.
         discount = 1.
-        for i in range(self.fn):
+        for _ in range(self.fn):
             timestep = self.env.step(action)
             rew_sum += discount*timestep.reward
             discount *= timestep.discount
             if timestep.last():
                 break
-
-        return TimeStep(
-            step_type=timestep.step_type,
-            reward=rew_sum,
-            discount=discount,
-            observation=timestep.observation
-        )
+        return timestep._replace(reward=rew_sum, discount=discount)

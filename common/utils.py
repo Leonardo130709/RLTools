@@ -7,7 +7,7 @@ F = nn.functional
 td = torch.distributions
 
 
-def build_mlp(*sizes, act=nn.ELU):
+def build_mlp(*sizes, act=nn.ReLU):
     mlp = []
     for i in range(1, len(sizes)):
         mlp.append(nn.Linear(sizes[i-1], sizes[i]))
@@ -66,7 +66,7 @@ def retrace(resids, cs, discount, disclam):
     return torch.stack(deltas).flip(0)
 
 
-def ordinal_logits(logits, delta=1e-7):
+def ordinal_logits(logits, delta=0.):
     logits = torch.sigmoid(logits)
     logits = torch.clamp(logits, min=delta, max=1.-delta)
     lt = torch.log(logits)
@@ -82,3 +82,9 @@ def dual_loss(loss, epsilon, alpha):
     scaled_loss = alpha.detach()*loss
     mult_loss = alpha*(epsilon - loss.detach())
     return scaled_loss, mult_loss
+
+
+def sequence_discount(x, discount=1.):
+    discount = discount ** torch.arange(x.size(0), device=x.device)
+    shape = (x.ndimension() - 1) * (1,)
+    return discount.reshape(-1, *shape)

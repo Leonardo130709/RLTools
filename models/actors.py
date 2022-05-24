@@ -16,7 +16,7 @@ class CategoricalActor(nn.Module):
     def forward(self, obs):
         logits = self.mlp(obs).reshape(*obs.shape[:-1], self.act_dim, self.act_num)
         if self.ordinal:
-            logits = utils.ordinal_logits(logits)
+            logits = utils.ordinal_logits(logits, delta=1e-7)
         dist = td.OneHotCategorical(logits=logits)
         return td.Independent(dist, 1)
 
