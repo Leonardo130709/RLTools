@@ -7,3 +7,4 @@ from .point_clouds import PointCloudWrapper
 from .states import StatesWrapper
 from .dm2gym import GymWrapper
 from .discretize import DiscreteActionWrapper
+from .typeconversion import TypesConvertor

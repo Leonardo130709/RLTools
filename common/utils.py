@@ -88,3 +88,14 @@ def sequence_discount(x, discount=1.):
     discount = discount ** torch.arange(x.size(0), device=x.device)
     shape = (x.ndimension() - 1) * (1,)
     return discount.reshape(-1, *shape)
+
+
+def chain_wrapper(env, wrappers_with_configs):
+    for wrapper, config in wrappers_with_configs:
+        env = wrapper(env, **config)
+    return env
+
+
+def weight_init(module):
+    if isinstance(module, nn.Linear):
+        nn.init.orthogonal_(module.weight.data, 1.4)

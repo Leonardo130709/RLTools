@@ -35,11 +35,12 @@ class ResNet(nn.Module):
     def __init__(self, hidden_dim, act=nn.ReLU):
         super().__init__()
 
-        make_block = lambda: nn.Sequential(
-            nn.LayerNorm(hidden_dim),
-            act(),
-            nn.Linear(hidden_dim, hidden_dim)
-        )
+        def make_block():
+            return nn.Sequential(
+                nn.LayerNorm(hidden_dim),
+                act(),
+                nn.Linear(hidden_dim, hidden_dim)
+            )
         self.net = nn.Sequential(*(make_block() for _ in range(2)))
 
     def forward(self, x):

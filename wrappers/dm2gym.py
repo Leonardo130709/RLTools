@@ -1,9 +1,9 @@
 """ Unpacks dm_env TimeStep to gym-like tuple """
-from dm_env import Environment
+import dm_env
 
 
 class GymWrapper:
-    def __init__(self, env: Environment):
+    def __init__(self, env: dm_env.Environment):
         self.env = env
 
     def step(self, action):
