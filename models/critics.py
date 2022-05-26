@@ -1,6 +1,6 @@
 import torch
 from ..common import utils
-from .common import QuantileEmbedding
+from .common import QuantileEmbedding, TanhLayerNormMLP
 nn = torch.nn
 F = torch.nn.functional
 td = torch.distributions
@@ -9,7 +9,7 @@ td = torch.distributions
 class Critic(nn.Module):
     def __init__(self, in_features, layers, heads=2):
         super().__init__()
-        self.qs = nn.ModuleList([utils.build_mlp(in_features, *layers, 1) for _ in range(heads)])
+        self.qs = nn.ModuleList([TanhLayerNormMLP(in_features, *layers, 1) for _ in range(heads)])
 
     def forward(self, obs, action):
         x = torch.cat([obs, action], -1)
@@ -22,7 +22,7 @@ class DistributionalCritic(nn.Module):
     def __init__(self, in_features, layers=(32, 32), quantile_emb_dim=64):
         super().__init__()
         self.qnet = QuantileEmbedding(quantile_emb_dim, in_features)
-        self.mlp = utils.build_mlp(in_features, *layers, 1)
+        self.mlp = TanhLayerNormMLP(in_features, *layers, 1)
 
     def forward(self, obs, action, tau):
         tau = self.qnet(tau)
@@ -34,7 +34,7 @@ class DistributionalValue(nn.Module):
     def __init__(self, in_features, layers, quantile_emb=64):
         super().__init__()
         self.qnet = QuantileEmbedding(quantile_emb, in_features)
-        self.mlp = utils.build_mlp(in_features, *layers, 1)
+        self.mlp = TanhLayerNormMLP(in_features, *layers, 1)
 
     def forward(self, state, tau):
         tau = self.qnet(tau)

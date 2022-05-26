@@ -31,6 +31,18 @@ class TanhLayerNormEmbedding(nn.Module):
         return self.emb(x)
 
 
+class TanhLayerNormMLP(nn.Module):
+    def __init__(self, *sizes, act=nn.ReLU):
+        super().__init__()
+        self.net = nn.Sequential(
+            TanhLayerNormEmbedding(sizes[0], sizes[1]),
+            utils.build_mlp(*sizes[1:], act=act)
+        )
+
+    def forward(self, inp):
+        return self.net(inp)
+
+
 class ResNet(nn.Module):
     def __init__(self, hidden_dim, act=nn.ReLU):
         super().__init__()
