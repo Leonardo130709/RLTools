@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 from abc import ABC
 import dataclasses
 from ruamel.yaml import YAML
@@ -5,13 +8,13 @@ from ruamel.yaml import YAML
 
 @dataclasses.dataclass
 class BaseConfig(ABC):
-    def save(self, file_path):
+    def save(self, file_path: str) -> None:
         yaml = YAML()
         with open(file_path, 'w') as f:
             yaml.dump(dataclasses.asdict(self), f)
 
     @classmethod
-    def load(cls, file_path, **kwargs):
+    def load(cls, file_path: str, **kwargs) -> BaseConfig:
         yaml = YAML()
         with open(file_path) as f:
             config_dict = yaml.load(f)

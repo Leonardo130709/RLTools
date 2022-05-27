@@ -57,3 +57,16 @@ class ResNet(nn.Module):
 
     def forward(self, x):
         return x + self.net(x)
+
+
+class ResidualTower(nn.Module):
+    def __init__(self, in_features, out_features, hidden_dim, act=nn.ReLU, num_blocks=2):
+        super().__init__()
+        self.net = nn.Sequential(
+            TanhLayerNormEmbedding(in_features, hidden_dim),
+            *(ResNet(hidden_dim, act) for _ in range(num_blocks)),
+            TanhLayerNormEmbedding(hidden_dim, out_features)
+        )
+
+    def forward(self, x):
+        return self.net(x)
