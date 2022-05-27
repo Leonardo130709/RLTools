@@ -6,19 +6,19 @@ class Wrapper(dm_env.Environment):
     def __init__(self, env: dm_env.Environment):
         self.env = env
 
-    def observation(self, timestep):
+    def observation(self, timestep: dm_env.TimeStep):
         return timestep.observation
 
-    def reward(self, timestep):
+    def reward(self, timestep: dm_env.TimeStep):
         return timestep.reward
 
-    def done(self, timestep):
+    def done(self, timestep: dm_env.TimeStep):
         return timestep.last()
 
-    def step_type(self, timestep):
+    def step_type(self, timestep: dm_env.TimeStep):
         return timestep.step_type
 
-    def discount(self, timestep):
+    def discount(self, timestep: dm_env.TimeStep):
         return timestep.discount
 
     def step(self, action) -> dm_env.TimeStep:
