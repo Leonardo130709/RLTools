@@ -1,6 +1,5 @@
-from .base import Wrapper
-from dm_env import specs
 import numpy as np
+from .base import Wrapper
 
 
 class DiscreteActionWrapper(Wrapper):
@@ -8,7 +7,10 @@ class DiscreteActionWrapper(Wrapper):
         super().__init__(env)
         act_spec = env.action_spec()
         self.one_hot = one_hot
-        self._action_spec = specs.BoundedArray(shape=act_spec.shape, dtype=int, minimum=0, maximum=num_actions - 1)
+        self._action_spec = specs.BoundedArray(
+            shape=act_spec.shape, dtype=int,
+            minimum=0, maximum=num_actions - 1
+        )
         self._spacing = np.linspace(act_spec.minimum, act_spec.maximum, num_actions)
 
     def step(self, action):

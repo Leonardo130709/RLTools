@@ -1,6 +1,6 @@
-from .base import Wrapper
-from collections import deque
 import numpy as np
+from collections import deque
+from .base import Wrapper
 
 
 class FrameStack(Wrapper):

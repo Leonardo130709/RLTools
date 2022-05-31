@@ -1,17 +1,19 @@
 import copy
 import torch
+import dm_env
 import numpy as np
 from itertools import chain
 from ..wrappers.base import Wrapper
-import typing
+from typing import TypeVar, Union, Tuple, NoReturn, Type
 nn = torch.nn
 F = nn.functional
 td = torch.distributions
-_W = typing.TypeVar('Wrapper', bound=Wrapper)
-_M = typing.TypeVar('nn.Module', bound=nn.Module)
+
+Env = TypeVar('Env', bound=dm_env.Environment)
+Module = TypeVar('Module', bound=nn.Module)
 
 
-def build_mlp(*sizes: int, act=nn.ReLU) -> nn.Sequential:
+def build_mlp(*sizes: int, act: nn.Module = nn.ReLU) -> nn.Sequential:
     mlp = []
     for i in range(1, len(sizes)):
         mlp.append(nn.Linear(sizes[i-1], sizes[i]))
@@ -28,15 +30,16 @@ def grads_sum(model: nn.Module) -> float:
 
 
 @torch.no_grad()
-def soft_update(target: nn.Module, online: nn.Module, rho: float) -> None:
+def soft_update(target: nn.Module, online: nn.Module, rho: float) -> NoReturn:
     for pt, po in zip(target.parameters(), online.parameters()):
         pt.data.copy_(rho * pt.data + (1. - rho) * po.data)
 
 
 class TruncatedTanhTransform(td.transforms.TanhTransform):
-    _lim = .9999997
+    """Prevents TanhTransform saturation by truncating it instead of caching."""
+    _lim = .9997
 
-    def _inverse(self, y):
+    def _inverse(self, y) -> torch.Tensor:
         y = torch.clamp(y, min=-self._lim, max=self._lim)
         return y.atanh()
 
@@ -58,9 +61,10 @@ def make_targets(*modules: _M):
     return map(lambda m: copy.deepcopy(m).requires_grad_(False), modules)
 
 
-def retrace(resids: torch.Tensor, cs: torch.Tensor, discount: float, disclam: float) -> torch.Tensor:
+def retrace(resids: torch.Tensor, cs: torch.Tensor,
+            discount: float, lambda_: float) -> torch.Tensor:
     cs = torch.cat((cs[1:], torch.ones_like(cs[-1:])))
-    cs *= disclam
+    cs *= lambda_
     resids, cs = map(lambda t: t.flip(0), (resids, cs))
     deltas = []
     last_val = torch.zeros_like(resids[0])
@@ -81,7 +85,8 @@ def ordinal_logits(logits: torch.Tensor, delta: float = 0.) -> torch.Tensor:
     return lt+gt
 
 
-def dual_loss(loss: torch.Tensor, epsilon: typing.Union[float, torch.Tensor], alpha: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+def dual_loss(loss: torch.Tensor, epsilon: Union[float, torch.Tensor],
+              alpha: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
     """ Constrained loss with lagrange multiplier. """
     scaled_loss = alpha.detach()*loss
     mult_loss = alpha*(epsilon - loss.detach())
@@ -94,7 +99,7 @@ def sequence_discount(x: torch.Tensor, discount: float = 1.) -> torch.Tensor:
     return discount.reshape(-1, *shape)
 
 
-def chain_wrapper(env: Wrapper, wrappers_with_configs: list[tuple[typing.Type[_W], dict]]) -> Wrapper:
+def chain_wrapper(env: Env, wrappers_with_configs: list[tuple[Type[Wrapper], dict]]) -> Env:
     for wrapper, config in wrappers_with_configs:
         env = wrapper(env, **config)
     return env

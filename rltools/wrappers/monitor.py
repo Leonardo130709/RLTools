@@ -1,6 +1,6 @@
-from .base import Wrapper
 import numpy as np
 from collections import defaultdict
+from .base import Wrapper
 
 
 class Monitor(Wrapper):

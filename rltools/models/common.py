@@ -1,5 +1,5 @@
-import torch
 import math
+import torch
 from ..common import utils
 nn = torch.nn
 
@@ -18,7 +18,7 @@ class QuantileEmbedding(nn.Module):
         return torch.relu(x)
 
 
-class TanhLayerNormEmbedding(nn.Module):
+class LayerNormTanhEmbedding(nn.Module):
     def __init__(self, *sizes, act=nn.ELU):
         super().__init__()
         self.emb = nn.Sequential(
@@ -31,11 +31,11 @@ class TanhLayerNormEmbedding(nn.Module):
         return self.emb(x)
 
 
-class TanhLayerNormMLP(nn.Module):
+class LayerNormTanhMLP(nn.Module):
     def __init__(self, *sizes, act=nn.ReLU):
         super().__init__()
         self.net = nn.Sequential(
-            TanhLayerNormEmbedding(sizes[0], sizes[1]),
+            LayerNormTanhEmbedding(sizes[0], sizes[1]),
             utils.build_mlp(*sizes[1:], act=act)
         )
 
@@ -63,9 +63,9 @@ class ResidualTower(nn.Module):
     def __init__(self, in_features, out_features, hidden_dim, act=nn.ReLU, num_blocks=2):
         super().__init__()
         self.net = nn.Sequential(
-            TanhLayerNormEmbedding(in_features, hidden_dim),
+            LayerNormTanhEmbedding(in_features, hidden_dim),
             *(ResNet(hidden_dim, act) for _ in range(num_blocks)),
-            TanhLayerNormEmbedding(hidden_dim, out_features)
+            LayerNormTanhEmbedding(hidden_dim, out_features)
         )
 
     def forward(self, x):

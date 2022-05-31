@@ -1,6 +1,6 @@
-from .base import Wrapper
 import numpy as np
 from dm_env import specs
+from .base import Wrapper
 
 
 class PixelsWrapper(Wrapper):

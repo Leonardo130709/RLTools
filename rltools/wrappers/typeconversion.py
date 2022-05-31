@@ -1,11 +1,12 @@
-from .base import Wrapper
 import dm_env
 import collections
+from .base import Wrapper
 
 
+# TODO: needs update
 class TypesConvertor(Wrapper):
     def __init__(self,
-                 env,
+                 env: dm_env.Environment,
                  observation_dtype=None,
                  reward_dtype=None,
                  discount_dtype=None

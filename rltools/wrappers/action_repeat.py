@@ -1,5 +1,4 @@
 from .base import Wrapper
-from dm_env import TimeStep
 
 
 class ActionRepeat(Wrapper):
@@ -17,4 +16,5 @@ class ActionRepeat(Wrapper):
             discount *= timestep.discount
             if timestep.last():
                 break
+        # pylint: disable-next=protected-access
         return timestep._replace(reward=rew_sum, discount=discount)
