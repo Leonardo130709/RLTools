@@ -1,6 +1,9 @@
 from abc import ABC
 import dataclasses
+from typing import TypeVar
 from ruamel.yaml import YAML
+
+Config = Typevar('Config', bound='BaseConfig')
 
 
 @dataclasses.dataclass
@@ -12,7 +15,7 @@ class BaseConfig(ABC):
             yaml.dump(dataclasses.asdict(self), config_file)
 
     @classmethod
-    def load(cls, file_path: str, **kwargs) -> cls:
+    def load(cls, file_path: str, **kwargs) -> Config:
         """Load config from the path."""
         yaml = YAML()
         with open(file_path, 'r', encoding='utf-8') as config_file:
@@ -25,6 +28,7 @@ class BaseConfig(ABC):
         return cls(**config_dict)
 
     def __post_init__(self):
+        """Converts fields to declared types."""
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
             value = field.type(value)

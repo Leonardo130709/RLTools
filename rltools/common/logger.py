@@ -1,6 +1,6 @@
 import csv
 import pathlib
-from typing import Union
+from typing import Union, List, Dict
 from tensorboard.backend.event_processing import tag_types
 import tensorboard.backend.event_processing.event_accumulator as tbea
 Path = Union[str, pathlib.Path]
@@ -11,7 +11,7 @@ class ScalarsParser:
     def __init__(self, scalars_size: int = 0) -> None:
         self.size_guidance = {tag_types.SCALARS: scalars_size}
 
-    def to_dict(self, events_path: Path) -> dict[str, list[tbea.ScalarEvent]]:
+    def to_dict(self, events_path: Path) -> Dict[str, List[tbea.ScalarEvent]]:
         """Extracts scalars from tf-events file to python dictionary."""
         acc = tbea.EventAccumulator(
             events_path,
@@ -28,7 +28,7 @@ class ScalarsParser:
             output_dir.mkdir(parents=True, exist_ok=False)
 
         results = self.to_dict(events_path)
-        keys = results.keys()
+        keys = set(results.keys())
         prefixes = set((k.rsplit('/', 1)[0] for k in keys))
 
         for prefix in prefixes:
@@ -39,4 +39,3 @@ class ScalarsParser:
 
                 for scalars in zip(*(results[k] for k in selected_keys)):
                     writer.writerow({k: sc.value for k, sc in zip(selected_keys, scalars)})
-

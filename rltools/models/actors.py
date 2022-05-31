@@ -1,3 +1,4 @@
+# pylint: disable=too-many-arguments,
 import torch
 from ..common import utils
 from .common import LayerNormTanhMLP
@@ -33,16 +34,18 @@ class ContinuousActor(nn.Module):
 
     def forward(self, x) -> td.Distribution:
         x = self.mlp(x)
-        mu, std = x.chunk(2, -1)
-        mu = self.mean_scale * torch.tanh(mu / self.mean_scale)
+        mean, std = x.chunk(2, -1)
+        mean = self.mean_scale * torch.tanh(mean / self.mean_scale)
         std = torch.maximum(std, torch.full_like(std, -18.))
         std = F.softplus(std + self.init_std) + 1e-4
-        return self.get_dist(mu, std)
+        return self.get_dist(mean, std)
 
     @staticmethod
-    def get_dist(mu, std) -> td.Distribution:
-        dist = td.Normal(mu, std)
-        dist = td.transformed_distribution.TransformedDistribution(dist,
-                                                                   td.TanhTransform(cache_size=1))
+    def get_dist(mean, std) -> td.Distribution:
+        dist = td.Normal(mean, std)
+        dist = td.transformed_distribution.TransformedDistribution(
+            dist,
+            td.TanhTransform(cache_size=1)
+        )
         dist = td.Independent(dist, 1)
         return dist

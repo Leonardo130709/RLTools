@@ -1,4 +1,4 @@
-""" dm_control env wrappers"""
+"""dm_control env wrappers."""
 from .action_repeat import ActionRepeat
 from .frames_stack import FrameStack
 from .monitor import Monitor
