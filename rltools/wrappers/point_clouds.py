@@ -1,8 +1,8 @@
-from .base import Wrapper
 import numpy as np
 from dm_env import specs
 from dm_control.mujoco import wrapper
 from dm_control.mujoco.wrapper.mjbindings import enums
+from .base import Wrapper
 
 
 class PointCloudWrapper(Wrapper):

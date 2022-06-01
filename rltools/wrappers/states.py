@@ -15,5 +15,5 @@ class StatesWrapper(Wrapper):
         return obs.astype(np.float32)
 
     def observation_spec(self):
-        dim = sum((np.prod(ar.shape) for ar in env.observation_spec().values()))
+        dim = sum((np.prod(ar.shape) for ar in self.env.observation_spec().values()))
         return specs.Array(shape=(dim,), dtype=np.float32, name='states')

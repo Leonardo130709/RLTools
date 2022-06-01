@@ -1,28 +1,33 @@
-import abc
 import dm_env
 from typing import Any
 
 
 class Wrapper(dm_env.Environment):
+    """Base wrapper with declaration of required methods."""
     def __init__(self, env: dm_env.Environment):
         self.env = env
 
-    def observation(self, timestep: dm_env.TimeStep) -> Any:
+    @staticmethod
+    def observation(timestep: dm_env.TimeStep) -> Any:
         return timestep.observation
 
-    def reward(self, timestep: dm_env.TimeStep) -> float:
+    @staticmethod
+    def reward(timestep: dm_env.TimeStep) -> float:
         return timestep.reward
 
-    def done(self, timestep: dm_env.TimeStep) -> bool:
+    @staticmethod
+    def done(timestep: dm_env.TimeStep) -> bool:
         return timestep.last()
 
-    def step_type(self, timestep: dm_env.TimeStep) -> dm_env.StepType:
+    @staticmethod
+    def step_type(timestep: dm_env.TimeStep) -> dm_env.StepType:
         return timestep.step_type
 
-    def discount(self, timestep: dm_env.TimeStep) -> float:
+    @staticmethod
+    def discount(timestep: dm_env.TimeStep) -> float:
         return timestep.discount
 
-    def step(self, action) -> dm_env.TimeStep:
+    def step(self, action: Any) -> dm_env.TimeStep:
         timestep = self.env.step(action)
         return self._wrap_timestep(timestep)
 
@@ -44,7 +49,7 @@ class Wrapper(dm_env.Environment):
     def observation_spec(self) -> dm_env.specs.Array:
         return self.env.observation_spec()
 
-    # TODO: explicit declaration
+    # TODO: explicit declaration since now it is unsafe.
     def __getattr__(self, item):
         return getattr(self.env, item)
 

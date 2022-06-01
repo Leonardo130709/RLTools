@@ -3,12 +3,12 @@ import dataclasses
 from typing import TypeVar
 from ruamel.yaml import YAML
 
-Config = Typevar('Config', bound='BaseConfig')
+Config = TypeVar('Config', bound='BaseConfig')
 
 
 @dataclasses.dataclass
 class BaseConfig(ABC):
-    """Base config class with implemented save/load functions."""
+    """Base Config class with implemented save/load functions."""
     def save(self, file_path: str) -> None:
         yaml = YAML()
         with open(file_path, 'w', encoding='utf-8') as config_file:
