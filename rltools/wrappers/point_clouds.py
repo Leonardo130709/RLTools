@@ -1,13 +1,29 @@
+from typing import Optional, Dict
 import numpy as np
-from dm_env import specs
+import dm_env
 from dm_control.mujoco import wrapper
 from dm_control.mujoco.wrapper.mjbindings import enums
 from .base import Wrapper
 
 
 class PointCloudWrapper(Wrapper):
-    def __init__(self, env, pn_number=1000, render_kwargs=None,
-                 static_camera=True, as_pixels=False, downsample=1):
+    """Infers point cloud from image of camera using MuJoCo engine."""
+    def __init__(self,
+                 env: dm_env.Environment,
+                 pn_number: int = 1000,
+                 render_kwargs: Optional[Dict] = None,
+                 static_camera: bool = True,
+                 as_pixels: bool = False,
+                 downsample: int = 1
+                 ):
+        """Creates instance.
+
+        pn_number - resulting number of points after pruning/padding.
+        render_kwargs - possible flags from mujoco.physics.render.
+        static_camera - if camera remains static some computations will be cached.
+        as_pixels - if true will return 2D grid with objects coordinates in each pixel.
+        downsample - takes every n-th point from point cloud.
+        """
         super().__init__(env)
         self.render_kwargs = render_kwargs or dict(camera_id=0, height=240, width=320)
         assert all(map(lambda k: k in self.render_kwargs, ('camera_id', 'height', 'width')))
@@ -82,8 +98,8 @@ class PointCloudWrapper(Wrapper):
         # threshold = np.quantile(point_cloud[..., 2], .99)
         return point_cloud[..., 2] < 10.
 
-    def observation_spec(self):
-        return specs.Array(shape=(self.pn_number, 3), dtype=np.float32, name='point_cloud')
+    def observation_spec(self) -> dm_env.specs.Array:
+        return dm_env.specs.Array(shape=(self.pn_number, 3), dtype=np.float32, name='point_cloud')
 
     @staticmethod
     def _dot_product(x, y):

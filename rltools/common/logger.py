@@ -12,7 +12,7 @@ class ScalarsParser:
         self.size_guidance = {tag_types.SCALARS: scalars_size}
 
     def to_dict(self, events_path: Path) -> Dict[str, List[tbea.ScalarEvent]]:
-        """Extracts scalars from tf-events file to python dictionary."""
+        """Extract scalars from tf-events file to python dictionary."""
         acc = tbea.EventAccumulator(
             events_path,
             size_guidance=self.size_guidance,

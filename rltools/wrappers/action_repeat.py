@@ -1,7 +1,9 @@
+import dm_env
 from .base import Wrapper
 
 
 class ActionRepeat(Wrapper):
+    """Repeat the same action multiple times."""
     def __init__(self, env, frames_number: int):
         assert frames_number > 0
         super().__init__(env)

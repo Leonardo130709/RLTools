@@ -1,8 +1,8 @@
-""" Unpacks dm_env TimeStep to gym-like tuple """
 import dm_env
 
 
 class GymWrapper:
+    """ Unpacks dm_env.TimeStep to gym-like tuple. Cannot be wrapped further."""
     def __init__(self, env: dm_env.Environment):
         self.env = env
 

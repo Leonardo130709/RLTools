@@ -8,8 +8,9 @@ Config = TypeVar('Config', bound='BaseConfig')
 
 @dataclasses.dataclass
 class BaseConfig(ABC):
-    """Base Config class with implemented save/load functions."""
+    """Base class for config objects with implemented save/load functions."""
     def save(self, file_path: str) -> None:
+        """Save as YAML in the specified path."""
         yaml = YAML()
         with open(file_path, 'w', encoding='utf-8') as config_file:
             yaml.dump(dataclasses.asdict(self), config_file)
@@ -28,7 +29,7 @@ class BaseConfig(ABC):
         return cls(**config_dict)
 
     def __post_init__(self):
-        """Converts fields to declared types."""
+        """Convert fields to declared types."""
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
             value = field.type(value)

@@ -51,9 +51,10 @@ class TypesConvertor(Wrapper):
         if dtype:
             if isinstance(struct, Mapping):
                 for k, v in struct.items():
-                    struct[k] = self._replacer(v, dtype)
+                    struct[k] = v.replace(dtype=dtype)
             elif isinstance(struct, dm_env.specs.Array):
                 struct = struct.replace(dtype=dtype)
             else:
                 raise NotImplementedError
         return struct
+

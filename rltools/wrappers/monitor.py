@@ -1,10 +1,12 @@
-import numpy as np
 from collections import defaultdict
+import numpy as np
+import dm_env
 from .base import Wrapper
 
 
 class Monitor(Wrapper):
-    def __init__(self, env):
+    """Store proprietary states with observations coming from the environment."""
+    def __init__(self, env: dm_env.Environment):
         super().__init__(env)
         self._data = defaultdict(list)
 

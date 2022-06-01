@@ -1,6 +1,5 @@
 import abc
-import pathlib
-from typing import Union, TypeVar
+from typing import TypeVar
 import dm_env
 from .base_config import BaseConfig
 
@@ -21,9 +20,9 @@ class RLAlg(abc.ABC):
         """Creates environment on which agent will operate. Must follow dm_env.Environment."""
 
     @abc.abstractmethod
-    def save(self, path: Union[str, pathlib.Path]):
-        """Save configs/weights/logs/buffer and everything else to the path."""
+    def save(self, path: str):
+        """Saves configs/weights/logs/buffer and everything else to the path."""
 
     @abc.abstractmethod
-    def load(self, path: Union[str, pathlib.Path]):
+    def load(self, path: str):
         """Restores algorithm state from the saved directory."""

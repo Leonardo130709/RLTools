@@ -1,9 +1,9 @@
-import dm_env
 from typing import Any
+import dm_env
 
 
 class Wrapper(dm_env.Environment):
-    """Base wrapper with declaration of required methods."""
+    """This allows to modify attributes which agent observes and to pack it back."""
     def __init__(self, env: dm_env.Environment):
         self.env = env
 
@@ -27,7 +27,7 @@ class Wrapper(dm_env.Environment):
     def discount(timestep: dm_env.TimeStep) -> float:
         return timestep.discount
 
-    def step(self, action: Any) -> dm_env.TimeStep:
+    def step(self, action) -> dm_env.TimeStep:
         timestep = self.env.step(action)
         return self._wrap_timestep(timestep)
 
@@ -49,7 +49,7 @@ class Wrapper(dm_env.Environment):
     def observation_spec(self) -> dm_env.specs.Array:
         return self.env.observation_spec()
 
-    # TODO: explicit declaration since now it is unsafe.
+    # TODO: explicit declaration
     def __getattr__(self, item):
         return getattr(self.env, item)
 

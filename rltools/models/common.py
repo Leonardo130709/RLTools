@@ -1,11 +1,13 @@
 import math
+from typing import Literal, Type
 import torch
-from ..common import utils
 nn = torch.nn
+LayerNormTanhMode = Literal['first', 'last', 'both', 'none']
+Activation = Type[nn.Module]  # make it more precise
 
 
 class QuantileEmbedding(nn.Module):
-    def __init__(self, emb_dim, out_dim):
+    def __init__(self, emb_dim: int, out_dim: int):
         super().__init__()
         self.emb_dim = emb_dim
         self.fc = nn.Linear(emb_dim, out_dim)
@@ -18,33 +20,46 @@ class QuantileEmbedding(nn.Module):
         return torch.relu(x)
 
 
-class LayerNormTanhEmbedding(nn.Module):
-    def __init__(self, *sizes, act=nn.ELU):
+class MLP(nn.Module):
+    """Common Multi Layer Perceptron.
+    With an option to place LayerNorm+Tanh on top of it and/or bottom.
+    """
+    def __init__(self,
+                 *layers: int,
+                 act: Activation = nn.ReLU,
+                 layernormtanh: LayerNormTanhMode = 'none'
+                 ):
         super().__init__()
-        self.emb = nn.Sequential(
-            utils.build_mlp(*sizes, act=act),
-            nn.LayerNorm(sizes[-1]),
-            nn.Tanh()
-        )
+        modules = []  # avoid unnecessary nested structures
+        lnt_first = layernormtanh in ('first', 'both')
+        lnt_last = layernormtanh in ('last', 'both')
 
-    def forward(self, x):
-        return self.emb(x)
+        def _make_layernormtanh(in_features, out_features):
+            return [
+                nn.Linear(in_features, out_features),
+                nn.LayerNorm(out_features),
+                nn.Tanh()
+            ]
 
+        if lnt_first:
+            modules.extend(_make_layernormtanh(layers[0], layers[1]))
 
-class LayerNormTanhMLP(nn.Module):
-    def __init__(self, *sizes, act=nn.ReLU):
-        super().__init__()
-        self.net = nn.Sequential(
-            LayerNormTanhEmbedding(sizes[0], sizes[1]),
-            utils.build_mlp(*sizes[1:], act=act)
-        )
+        for i in range(lnt_first, len(layers) - 1 - lnt_last):
+            modules.extend([nn.Linear(layers[i], layers[i+1]), act()])
 
-    def forward(self, inp):
-        return self.net(inp)
+        if lnt_last:
+            modules.extend(_make_layernormtanh(layers[-2], layers[-1]))
+        else:
+            modules = modules[:-1]  # Drop output activation which may not be required.
+
+        self.net = nn.Sequential(*modules)
+
+    def forward(self, tensor):
+        return self.net(tensor)
 
 
 class ResNet(nn.Module):
-    def __init__(self, hidden_dim, act=nn.ReLU):
+    def __init__(self, hidden_dim: int, act: Activation = nn.ReLU):
         super().__init__()
 
         def make_block():
@@ -60,12 +75,18 @@ class ResNet(nn.Module):
 
 
 class ResidualTower(nn.Module):
-    def __init__(self, in_features, out_features, hidden_dim, act=nn.ReLU, num_blocks=2):
+    def __init__(self,
+                 in_features: int,
+                 out_features: int,
+                 hidden_dim: int,
+                 act: Activation = nn.ReLU,
+                 num_blocks: int = 2
+                 ):
         super().__init__()
         self.net = nn.Sequential(
-            LayerNormTanhEmbedding(in_features, hidden_dim),
+            MLP(in_features, hidden_dim, act=act, layernormtanh='first'),
             *(ResNet(hidden_dim, act) for _ in range(num_blocks)),
-            LayerNormTanhEmbedding(hidden_dim, out_features)
+            MLP(hidden_dim, out_features, act=act, layernormtanh='last')
         )
 
     def forward(self, x):

@@ -1,6 +1,7 @@
+"""Commonly used functions."""
 import copy
 from itertools import chain
-from typing import TypeVar, Union, Tuple, NoReturn, Type, List, Tuple
+from typing import TypeVar, Union, Type, List, Tuple
 import torch
 import dm_env
 import numpy as np
@@ -14,7 +15,7 @@ Module = TypeVar('Module', bound=nn.Module)
 
 
 def build_mlp(*sizes: int, act: nn.Module = nn.ReLU) -> nn.Sequential:
-    """Builds basic MLP."""
+    """Build basic MLP."""
     mlp = []
     for i in range(1, len(sizes)):
         mlp.append(nn.Linear(sizes[i-1], sizes[i]))
@@ -23,16 +24,16 @@ def build_mlp(*sizes: int, act: nn.Module = nn.ReLU) -> nn.Sequential:
 
 
 def grads_sum(model: nn.Module) -> float:
-    """Computes gradients norm of the module, mostly serves for debugging purpose."""
-    norm = 0
+    """Compute gradients norm of the module, mostly serves for debugging purposes."""
+    total_norm = 0
     for p in model.parameters():
         if p.grad is not None:
-            norm += p.grad.abs().sum().item()
-    return np.sqrt(norm)
+            total_norm += p.grad.abs().sum().item()
+    return np.sqrt(total_norm)
 
 
 @torch.no_grad()
-def soft_update(target: nn.Module, online: nn.Module, rho: float) -> NoReturn:
+def soft_update(target: nn.Module, online: nn.Module, rho: float) -> None:
     """Soft update online network with its target counterpart."""
     for target_param, online_param in zip(target.parameters(), online.parameters()):
         target_param.data.copy_(rho * target_param.data + (1. - rho) * online_param.data)
@@ -40,7 +41,7 @@ def soft_update(target: nn.Module, online: nn.Module, rho: float) -> NoReturn:
 
 class TruncatedTanhTransform(td.transforms.TanhTransform):
     """Prevents TanhTransform saturation by truncating it instead of caching."""
-    _lim = .9997
+    _lim = .9999997
 
     def _inverse(self, y: torch.Tensor) -> torch.Tensor:
         y = torch.clamp(y, min=-self._lim, max=self._lim)
@@ -59,7 +60,7 @@ def sigmoid(param: torch.Tensor, lower_lim: float = 0., upper_lim: float = 1000.
 
 
 def make_param_group(*modules: Module):
-    """Makes single param group from inputs."""
+    """Make single param group from inputs."""
     return nn.ParameterList(chain(*map(nn.Module.parameters, modules)))
 
 
@@ -70,25 +71,21 @@ def make_targets(*modules: Module):
 
 def retrace(resids: torch.Tensor, cs: torch.Tensor,
             discount: float, lambda_: float) -> torch.Tensor:
-    """
-    Retrace deltas from sequence of corresponding inputs.
-    1606.02647
-    """
+    """Retrace deltas from sequence of corresponding inputs (1606.02647)."""
     cs = torch.cat((cs[1:], torch.ones_like(cs[-1:])))
     cs *= lambda_
     resids, cs = map(lambda t: t.flip(0), (resids, cs))
     deltas = []
     last_val = torch.zeros_like(resids[0])
     for resid, c in zip(resids, cs):
-        last_val = resod + last_val * discount * c
+        last_val = resid + last_val * discount * c
         deltas.append(last_val)
     return torch.stack(deltas).flip(0)
 
 
 def ordinal_logits(logits: torch.Tensor, delta: float = 0.) -> torch.Tensor:
-    """
-    Compute logits for ordinal regression on factorized categorical distribution.
-    However optimizations task with such logits could be cumbersome.
+    """Compute logits for ordinal regression on factorized categorical distribution.
+    However, optimizations task with such logits could be cumbersome.
     """
     logits = torch.sigmoid(logits)
     logits = torch.clamp(logits, min=delta, max=1.-delta)
@@ -102,7 +99,7 @@ def ordinal_logits(logits: torch.Tensor, delta: float = 0.) -> torch.Tensor:
 
 def dual_loss(loss: torch.Tensor, epsilon: Union[float, torch.Tensor],
               alpha: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-    """ Constrained loss with lagrange multiplier. """
+    """Constrained loss with lagrange multiplier."""
     scaled_loss = alpha.detach()*loss
     mult_loss = alpha*(epsilon - loss.detach())
     return scaled_loss, mult_loss
@@ -122,7 +119,7 @@ def chain_wrapper(env: Env, wrappers_with_configs: List[Tuple[Type[Wrapper], dic
     return env
 
 
-def weight_init(module: nn.Module) -> NoReturn:
+def weight_init(module: nn.Module) -> None:
     """Should define common weight init strategy"""
     if isinstance(module, nn.Linear):
         nn.init.orthogonal_(module.weight.data, 1.4)

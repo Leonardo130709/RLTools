@@ -1,12 +1,17 @@
+from typing import Literal
 import numpy as np
 from dm_env import specs
 from .base import Wrapper
+Modalities = Literal['rgb', 'rgbd', 'd', 'g', 'gd']
 
 
 class PixelsWrapper(Wrapper):
+    """Makes environment to return 2D array as an observation.
+    It could be one of the following: RGB array, grayscaled image, depth map.
+    Combinations of those modalities are also allowed."""
     channels = dict(rgb=3, rgbd=4, d=1, g=1, gd=2)
 
-    def __init__(self, env, render_kwargs=None, mode='rgb'):
+    def __init__(self, env, render_kwargs=None, mode: Modalities = 'rgb'):
         super().__init__(env)
         self.render_kwargs = render_kwargs or dict(camera_id=0, height=84, width=84)
         self.mode = mode

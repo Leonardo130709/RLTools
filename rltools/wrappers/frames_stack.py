@@ -1,9 +1,10 @@
-import numpy as np
 from collections import deque
+import numpy as np
 from .base import Wrapper
 
 
 class FrameStack(Wrapper):
+    """Stack previous observations to form a richer state."""
     def __init__(self, env, frames_number: int = 1):
         super().__init__(env)
         self.fn = frames_number
