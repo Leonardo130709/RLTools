@@ -40,7 +40,8 @@ def soft_update(target: nn.Module, online: nn.Module, rho: float) -> None:
 
 
 class TruncatedTanhTransform(td.transforms.TanhTransform):
-    """Prevents TanhTransform saturation by truncating it instead of caching."""
+    """Prevents TanhTransform saturation by truncating it.
+    However, it is stated that it might hurt performance."""
     _lim = .9999997
 
     def _inverse(self, y: torch.Tensor) -> torch.Tensor:

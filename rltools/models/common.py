@@ -1,5 +1,5 @@
 import math
-from typing import Literal, Type
+from typing import Literal, Type, Callable, Any
 import torch
 nn = torch.nn
 LayerNormTanhMode = Literal['first', 'last', 'both', 'none']
@@ -91,3 +91,27 @@ class ResidualTower(nn.Module):
 
     def forward(self, x):
         return self.net(x)
+
+
+class MultiHeadWrapper(nn.Module):
+    """Creates N copies of module and stacks them on forward call."""
+
+    def __init__(self,
+                 module_factory: Callable[[Any], nn.Module],
+                 weight_init: Callable[[nn.Module], None] = None,
+                 heads: int = 2,
+                 dim: int = 0,
+                 ):
+        super().__init__()
+        self.heads = nn.ModuleList([module_factory() for _ in range(heads)])
+        self._dim = dim
+        if weight_init:
+            self.apply(weight_init)
+
+    def forward(self, *args, **kwargs):
+        """First dimension will be appended and populated with stacks."""
+        outputs = []
+        for module in self.heads:
+            outputs.append(module(*args, **kwargs))
+
+        return torch.stack(outputs, self._dim)
