@@ -1,4 +1,4 @@
-from abc import ABC
+import abc
 import dataclasses
 from typing import TypeVar
 from ruamel.yaml import YAML
@@ -7,8 +7,8 @@ Config = TypeVar('Config', bound='BaseConfig')
 
 
 @dataclasses.dataclass
-class BaseConfig(ABC):
-    """Base class for config objects with implemented save/load functions."""
+class BaseConfig(abc.ABC):
+    """Base class for config objects with the implemented save/load functions."""
     def save(self, file_path: str) -> None:
         """Save as YAML in the specified path."""
         yaml = YAML()
@@ -17,7 +17,7 @@ class BaseConfig(ABC):
 
     @classmethod
     def load(cls, file_path: str, **kwargs) -> Config:
-        """Load config from the path."""
+        """Load config from the YAML."""
         yaml = YAML()
         with open(file_path, 'r', encoding='utf-8') as config_file:
             config_dict = yaml.load(config_file)

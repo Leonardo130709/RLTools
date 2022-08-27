@@ -1,5 +1,6 @@
+import dm_env.specs
 import numpy as np
-import dm_env
+
 from .base import Wrapper
 
 

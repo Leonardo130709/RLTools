@@ -1,4 +1,3 @@
-import dm_env
 from .base import Wrapper
 
 
@@ -13,7 +12,7 @@ class ActionRepeat(Wrapper):
         rew_sum = 0.
         discount = 1.
         for _ in range(self.fn):
-            timestep = self.env.step(action)
+            timestep = self._env.step(action)
             rew_sum += discount*timestep.reward
             discount *= timestep.discount
             if timestep.last():
