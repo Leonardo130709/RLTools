@@ -3,8 +3,8 @@ from collections import deque, OrderedDict
 
 import numpy as np
 
-from dmc_wrappers.base import Wrapper
-from dmc_wrappers.utils.nested import nested_fn
+from .base import Wrapper
+from .utils.nested import nested_fn
 
 
 #TODO: nested stack

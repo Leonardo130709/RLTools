@@ -2,7 +2,7 @@ import gym
 import numpy as np
 from dm_control.rl.control import Environment
 
-from dmc_wrappers.utils.nested import nested_fn
+from .utils.nested import nested_fn
 
 
 class GymWrapper:

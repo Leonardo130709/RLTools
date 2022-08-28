@@ -3,21 +3,20 @@ import dataclasses
 from typing import TypeVar
 from ruamel.yaml import YAML
 
-Config = TypeVar('Config', bound='BaseConfig')
-
 
 @dataclasses.dataclass
-class BaseConfig(abc.ABC):
-    """Base class for config objects with the implemented save/load functions."""
-    def save(self, file_path: str) -> None:
-        """Save as YAML in the specified path."""
+class Config(abc.ABC):
+    """Config object with all the hyperparameters."""
+
+    def save(self, file_path: str):
+        """Save as YAML in a specified path."""
         yaml = YAML()
         with open(file_path, 'w', encoding='utf-8') as config_file:
             yaml.dump(dataclasses.asdict(self), config_file)
 
     @classmethod
-    def load(cls, file_path: str, **kwargs) -> Config:
-        """Load config from the YAML."""
+    def load(cls, file_path: str, **kwargs) -> "Config":
+        """Load config from a YAML."""
         yaml = YAML()
         with open(file_path, 'r', encoding='utf-8') as config_file:
             config_dict = yaml.load(config_file)
@@ -29,8 +28,7 @@ class BaseConfig(abc.ABC):
         return cls(**config_dict)
 
     def __post_init__(self):
-        """Convert fields to declared types."""
+        """Casts fields to declared types."""
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
-            value = field.type(value)
-            setattr(self, field.name, value)
+            setattr(self, field.name, field.type(value))

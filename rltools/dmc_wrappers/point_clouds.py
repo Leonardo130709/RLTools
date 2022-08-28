@@ -4,8 +4,8 @@ from typing import Iterable
 import dm_env.specs
 import numpy as np
 
-from dmc_wrappers import base
-from dmc_wrappers.utils.point_cloud_generator import PointCloudGenerator
+from . import base
+from .utils.point_cloud_generator import PointCloudGenerator
 
 
 class PointCloudWrapper(base.Wrapper):

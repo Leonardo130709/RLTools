@@ -4,7 +4,7 @@ from collections import OrderedDict
 import numpy as np
 from dm_env import specs
 
-from dmc_wrappers import base
+from . import base
 
 RenderMode = Literal['image', 'depth', 'grayscale']
 GRAYSCALE_RGB = np.array([.3, .59, .11]).reshape(3, 1)

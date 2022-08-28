@@ -2,7 +2,7 @@ from typing import NamedTuple, Iterable
 
 import numpy as np
 
-from dmc_wrappers import base
+from .. import base
 
 
 class IntrinsicParams(NamedTuple):

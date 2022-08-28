@@ -1,6 +1,5 @@
-from typing import Any, Mapping, TypedDict, Union, NamedTuple
+from typing import Any, Mapping, TypedDict, Union, NamedTuple, Type
 
-import dm_env
 import dm_env.specs
 from dm_control.rl.control import Environment
 
@@ -20,29 +19,25 @@ class EnvironmentSpecs(NamedTuple):
     discount_spec: dm_env.specs.Array
 
 
+# pylint: disable=no-staticmethod-decorator
 class Wrapper:
     """This allows to modify methods of an already initialized environment."""
-    def __init__(self, env: Environment):
+    def __init__(self, env: Union[Environment, Type["Wrapper"]]):
         self._env = env
 
-    @staticmethod
-    def observation(timestep: dm_env.TimeStep) -> Any:
+    def observation(self, timestep: dm_env.TimeStep) -> Any:
         return timestep.observation
 
-    @staticmethod
-    def reward(timestep: dm_env.TimeStep) -> float:
+    def reward(self, timestep: dm_env.TimeStep) -> float:
         return timestep.reward
 
-    @staticmethod
-    def done(timestep: dm_env.TimeStep) -> bool:
+    def done(self, timestep: dm_env.TimeStep) -> bool:
         return timestep.last()
 
-    @staticmethod
-    def step_type(timestep: dm_env.TimeStep) -> dm_env.StepType:
+    def step_type(self, timestep: dm_env.TimeStep) -> dm_env.StepType:
         return timestep.step_type
 
-    @staticmethod
-    def discount(timestep: dm_env.TimeStep) -> float:
+    def discount(self, timestep: dm_env.TimeStep) -> float:
         return timestep.discount
 
     def step(self, action) -> dm_env.TimeStep:
@@ -88,7 +83,7 @@ class Wrapper:
 
     @property
     def unwrapped(self) -> Environment:
-        if hasattr(self._env, 'unwrapped'):
+        if hasattr(self._env, "unwrapped"):
             return self._env.unwrapped
         else:
             return self._env

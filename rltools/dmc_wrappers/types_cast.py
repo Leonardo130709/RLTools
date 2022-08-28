@@ -1,8 +1,8 @@
 from typing import Optional
 import numpy as np
 
-from dmc_wrappers.base import Wrapper
-from dmc_wrappers.utils.nested import nested_fn
+from .base import Wrapper
+from .utils.nested import nested_fn
 
 
 class TypesCast(Wrapper):
