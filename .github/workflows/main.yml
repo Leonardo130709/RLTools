@@ -31,6 +31,6 @@ jobs:
       - name: build push
         uses: docker/build-push-action@v3
         with:
-          tags: cr.yandex/${{ github.event.inputs.registry }}/${{ GITHUB_REPOSITORY }}:${{ GITHUB_SHA }}
+          tags: cr.yandex/${{ github.event.inputs.registry }}/${{ github.repository }}:${{ github.sha }}
           push: true
           context: .
