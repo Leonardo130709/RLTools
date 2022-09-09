@@ -6,7 +6,7 @@ from dm_env import specs
 
 from . import base
 
-RenderMode = Literal['image', 'depth', 'grayscale']
+RenderMode = Literal["image", "depth", "grayscale"]
 GRAYSCALE_RGB = np.array([.3, .59, .11]).reshape(3, 1)
 
 
@@ -40,8 +40,8 @@ class PixelsWrapper(base.Wrapper):
         for channel in self._channels:
             for camera in self._render_kwargs:
                 shape = (
-                    camera.get('height', 240),
-                    camera.get('width', 320),
+                    camera.get("height", 240),
+                    camera.get("width", 320),
                     self._channels_shapes[channel],
                 )
                 obs_name = f"cam_{camera.get('camera_id')}_{channel}"
@@ -53,13 +53,13 @@ class PixelsWrapper(base.Wrapper):
 def cam_observation(physics, render_kwargs: base.CameraParams, channels: Iterable[RenderMode]):
     observation = OrderedDict()
     for mode in channels:
-        if mode in ('image', 'grayscale'):
+        if mode in ("image", "grayscale"):
             rgb = physics.render(**render_kwargs)
             rgb = (rgb / 255).astype(np.float32)
             value = rgb
-            if mode == 'grayscale':
+            if mode == "grayscale":
                 value = value @ GRAYSCALE_RGB
-        elif mode == 'depth':
+        elif mode == "depth":
             depth = physics.render(depth=True, **render_kwargs)
             depth = np.expand_dims(depth, axis=-1).astype(np.float32)
             value = depth
