@@ -2,3 +2,5 @@
 from .jsonl import JSONLogger
 from .tf_summary import TFSummaryLogger
 from .terminal import TerminalOutput
+from .dispatcher import Dispatcher
+from .csv import CSVLogger

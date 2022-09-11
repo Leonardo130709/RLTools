@@ -1,4 +1,4 @@
-from typing import Literal, Iterable
+from typing import Literal, Sequence
 from collections import OrderedDict
 
 import numpy as np
@@ -18,8 +18,8 @@ class PixelsWrapper(base.Wrapper):
     _channels_shapes = dict(image=3, depth=1, grayscale=1)
 
     def __init__(self, env: base.Environment,
-                 render_kwargs: Iterable[base.CameraParams],
-                 channels: Iterable[RenderMode]
+                 render_kwargs: Sequence[base.CameraParams],
+                 channels: Sequence[RenderMode]
                  ):
         super().__init__(env)
         self._render_kwargs = sorted(render_kwargs)
@@ -50,7 +50,7 @@ class PixelsWrapper(base.Wrapper):
         return obs_spec
 
 
-def cam_observation(physics, render_kwargs: base.CameraParams, channels: Iterable[RenderMode]):
+def cam_observation(physics, render_kwargs: base.CameraParams, channels: Sequence[RenderMode]):
     observation = OrderedDict()
     for mode in channels:
         if mode in ("image", "grayscale"):

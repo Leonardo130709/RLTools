@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Iterable
+from typing import Sequence
 
 import dm_env.specs
 import numpy as np
@@ -12,7 +12,7 @@ class PointCloudWrapper(base.Wrapper):
     def __init__(self,
                  env: base.Environment,
                  pn_number: int,
-                 render_kwargs: Iterable[base.CameraParams],
+                 render_kwargs: Sequence[base.CameraParams],
                  stride: int
                  ):
         super().__init__(env)
