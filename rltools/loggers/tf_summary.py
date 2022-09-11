@@ -16,7 +16,7 @@ class TFSummaryLogger(base.Logger):
             step_key: Optional[str] = None
     ):
         self._iter = 0
-        self._label = label
+        self._label_fn = lambda key: f"{label}/{key}" if label else key
         self._summary = tf.summary.create_file_writer(logdir)
         self._step_key = step_key
 
@@ -26,7 +26,7 @@ class TFSummaryLogger(base.Logger):
         with self._summary.as_default():
             for key in metrics.keys() - [self._step_key]:
                 tf.summary.scalar(
-                    f'{self._label}/{key}',
+                    self._label_fn(key),
                     data=metrics[key],
                     step=step
                 )
