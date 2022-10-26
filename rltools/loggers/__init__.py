@@ -1,4 +1,4 @@
 """Loggers inspired by ACME(github.com/deepmind/acme)."""
-from .jsonl import JSONLogger
-from .tf_summary import TFSummaryLogger
-from .terminal import TerminalOutput
+from rltools.loggers.jsonl import JSONLogger
+from rltools.loggers.terminal import TerminalOutput
+from rltools.loggers.tf_summary import TFSummaryLogger

@@ -4,22 +4,22 @@ from collections import OrderedDict
 import numpy as np
 from dm_env import specs
 
-from . import base
+from rltools.dmc_wrappers.base import Wrapper
+from rltools.dmc_wrappers.utils.point_cloud_generator import CameraParams
 
-RenderMode = Literal["image", "depth", "grayscale"]
 GRAYSCALE_RGB = np.array([.3, .59, .11]).reshape(3, 1)
 
 
 #TODO: store rgb in uint to save memory.
-class PixelsWrapper(base.Wrapper):
+class PixelsWrapper(Wrapper):
     """Makes environment to return 2D array as an observation.
     It could be one of the following: RGB array, grayscaled image, depth map.
     Combinations of those modalities are also allowed."""
     _channels_shapes = dict(image=3, depth=1, grayscale=1)
 
-    def __init__(self, env: base.Environment,
-                 render_kwargs: Iterable[base.CameraParams],
-                 channels: Iterable[RenderMode]
+    def __init__(self, env,
+                 render_kwargs: Iterable[CameraParams],
+                 channels: Iterable[str]
                  ):
         super().__init__(env)
         self._render_kwargs = sorted(render_kwargs)
@@ -45,12 +45,16 @@ class PixelsWrapper(base.Wrapper):
                     self._channels_shapes[channel],
                 )
                 obs_name = f"cam_{camera.get('camera_id')}_{channel}"
-                obs_spec[obs_name] = specs.Array(shape=shape, dtype=np.float32, name=obs_name)
+                obs_spec[obs_name] = specs.Array(
+                    shape=shape, dtype=np.float32, name=obs_name)
 
         return obs_spec
 
 
-def cam_observation(physics, render_kwargs: base.CameraParams, channels: Iterable[RenderMode]):
+def cam_observation(physics,
+                    render_kwargs: CameraParams,
+                    channels: Iterable[str]
+                    ):
     observation = OrderedDict()
     for mode in channels:
         if mode in ("image", "grayscale"):

@@ -1,28 +1,23 @@
-from typing import Any, Mapping, TypedDict, Union, NamedTuple, Type
+from typing import Any, Mapping, NamedTuple, Type
 
-import dm_env.specs
-from dm_control.rl.control import Environment
+import dm_env
+from dm_env import specs
 
-OBS_SPECS = Mapping[str, dm_env.specs.Array]
-
-
-class CameraParams(TypedDict):
-    width: float
-    height: float
-    camera_id: Union[int, str]
+OBS_SPECS = Mapping[str, specs.Array]
 
 
 class EnvironmentSpecs(NamedTuple):
     observation_spec: OBS_SPECS
-    action_spec: dm_env.specs.Array
-    reward_spec: dm_env.specs.Array
-    discount_spec: dm_env.specs.Array
+    action_spec: specs.BoundedArray
+    reward_spec: specs.Array
+    discount_spec: specs.BoundedArray
 
 
 # pylint: disable=no-staticmethod-decorator
-class Wrapper:
+class Wrapper(dm_env.Environment):
     """This allows to modify methods of an already initialized environment."""
-    def __init__(self, env: Union[Environment, Type["Wrapper"]]):
+    
+    def __init__(self, env: dm_env.Environment):
         self._env = env
 
     def observation(self, timestep: dm_env.TimeStep) -> Any:
@@ -56,16 +51,16 @@ class Wrapper:
             observation=self.observation(timestep)
         )
 
-    def action_spec(self) -> dm_env.specs.Array:
+    def action_spec(self) -> specs.Array:
         return self._env.action_spec()
 
     def observation_spec(self) -> OBS_SPECS:
         return self._env.observation_spec()
 
-    def reward_spec(self):
+    def reward_spec(self) -> specs.Array:
         return self._env.reward_spec()
 
-    def discount_spec(self):
+    def discount_spec(self) -> specs.Array:
         return self._env.discount_spec()
 
     @property
@@ -77,12 +72,11 @@ class Wrapper:
             discount_spec=self.discount_spec()
         )
 
-    # TODO: explicit declaration
     def __getattr__(self, item):
         return getattr(self._env, item)
 
     @property
-    def unwrapped(self) -> Environment:
+    def unwrapped(self) -> dm_env.Environment:
         if hasattr(self._env, "unwrapped"):
             return self._env.unwrapped
         else:

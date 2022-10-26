@@ -1,9 +1,10 @@
 """dm_control env wrappers."""
-from .action_repeat import ActionRepeat
-from .frames_stack import FrameStack
-from .pixels import PixelsWrapper
-from .point_clouds import PointCloudWrapper
-from .states import StatesWrapper
-from .dm2gym import GymWrapper
-from .discretize import DiscreteActionWrapper
-from .types_cast import TypesCast
+from rltools.dmc_wrappers.action_repeat import ActionRepeat
+from rltools.dmc_wrappers.action_rescale import ActionRescale
+from rltools.dmc_wrappers.discretize import DiscreteActionWrapper
+from rltools.dmc_wrappers.gym_adapter import DmcToGym, GymToDmc
+from rltools.dmc_wrappers.frames_stack import FrameStack
+from rltools.dmc_wrappers.pixels import PixelsWrapper
+from rltools.dmc_wrappers.point_clouds import PointCloudWrapper
+from rltools.dmc_wrappers.states import StatesWrapper
+from rltools.dmc_wrappers.types_cast import TypesCast

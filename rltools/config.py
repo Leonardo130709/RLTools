@@ -1,7 +1,7 @@
 import abc
 import dataclasses
 
-from ruamel.yaml import YAML
+import ruamel.yaml as yaml
 
 
 @dataclasses.dataclass
@@ -10,16 +10,14 @@ class Config(abc.ABC):
 
     def save(self, file_path: str):
         """Save as YAML in a specified path."""
-        yaml = YAML()
         with open(file_path, "w", encoding="utf-8") as config_file:
-            yaml.dump(dataclasses.asdict(self), config_file)
+            yaml.safe_dump(dataclasses.asdict(self), config_file)
 
     @classmethod
     def load(cls, file_path: str, **kwargs) -> "Config":
-        """Load config from a YAML."""
-        yaml = YAML()
+        """Load config from a YAML. Values can by updated by kwargs."""
         with open(file_path, "r", encoding="utf-8") as config_file:
-            config_dict = yaml.load(config_file)
+            config_dict = yaml.safe_load(config_file)
         config_dict.update(kwargs)
 
         fields = map(lambda field: field.name, dataclasses.fields(cls))

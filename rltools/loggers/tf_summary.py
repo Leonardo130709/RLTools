@@ -4,7 +4,7 @@ try:
 except ImportError:
     pass
 
-from . import base
+from rltools.loggers import base
 
 
 class TFSummaryLogger(base.Logger):

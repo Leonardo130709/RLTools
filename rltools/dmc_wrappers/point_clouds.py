@@ -4,15 +4,18 @@ from typing import Iterable
 import dm_env.specs
 import numpy as np
 
-from . import base
-from .utils.point_cloud_generator import PointCloudGenerator
+from rltools.dmc_wrappers.base import Wrapper
+from rltools.dmc_wrappers.utils.point_cloud_generator import (
+    PointCloudGenerator,
+    CameraParams
+)
 
 
-class PointCloudWrapper(base.Wrapper):
+class PointCloudWrapper(Wrapper):
     def __init__(self,
-                 env: base.Environment,
+                 env,
                  pn_number: int,
-                 render_kwargs: Iterable[base.CameraParams],
+                 render_kwargs: Iterable[CameraParams],
                  stride: int
                  ):
         super().__init__(env)
