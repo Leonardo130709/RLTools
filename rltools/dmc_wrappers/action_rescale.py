@@ -14,7 +14,7 @@ class ActionRescale(Wrapper):
         assert isinstance(spec, BoundedArray)
         low = spec.minimum
         high = spec.maximum
-        self._diff = high - low
+        self._diff = (high - low) / 2.
         self._spec = spec.replace(
             minimum=np.full_like(low, -1),
             maximum=np.full_like(high, 1)
@@ -22,7 +22,7 @@ class ActionRescale(Wrapper):
         self._low = low
 
     def step(self, action):
-        action = (action + 1.) / 2. * self._diff + self._low
+        action = (action + 1.) * self._diff + self._low
         return self._env.step(action)
 
     def action_spec(self) -> dm_env.specs.Array:

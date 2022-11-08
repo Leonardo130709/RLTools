@@ -8,3 +8,5 @@ from rltools.dmc_wrappers.pixels import PixelsWrapper
 from rltools.dmc_wrappers.point_clouds import PointCloudWrapper
 from rltools.dmc_wrappers.states import StatesWrapper
 from rltools.dmc_wrappers.types_cast import TypesCast
+
+from rltools.dmc_wrappers.base import EnvironmentSpecs

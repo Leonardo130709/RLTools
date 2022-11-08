@@ -1,4 +1,4 @@
-from typing import Any, Mapping, NamedTuple, Type
+from typing import Any, Mapping, NamedTuple
 
 import dm_env
 from dm_env import specs
@@ -71,9 +71,6 @@ class Wrapper(dm_env.Environment):
             reward_spec=self.reward_spec(),
             discount_spec=self.discount_spec()
         )
-
-    def __getattr__(self, item):
-        return getattr(self._env, item)
 
     @property
     def unwrapped(self) -> dm_env.Environment:
