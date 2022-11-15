@@ -6,9 +6,9 @@ from rltools.dmc_wrappers.base import Wrapper
 
 class StatesWrapper(Wrapper):
     """Flatten observations to a single vector."""
-    def observation(self, timestamp):
+    def _observation_fn(self, timestep):
         return flatten_observation(
-            timestamp.observation,
+            timestep.observation,
             output_key=FLAT_OBSERVATION_KEY
         )
 
@@ -17,7 +17,8 @@ class StatesWrapper(Wrapper):
             np.prod(ar.shape)
             for ar in self._env.observation_spec().values()
         )
-        return specs.Array(
-            shape=(dim,), dtype=np.float32,
-            name=FLAT_OBSERVATION_KEY
-        )
+        return {
+            FLAT_OBSERVATION_KEY: specs.Array(
+                shape=(dim,), dtype=np.float32,
+                name=FLAT_OBSERVATION_KEY)
+        }

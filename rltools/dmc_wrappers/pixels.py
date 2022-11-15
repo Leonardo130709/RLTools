@@ -1,13 +1,14 @@
-from typing import Literal, Iterable
+from typing import Iterable
 from collections import OrderedDict
 
 import numpy as np
 from dm_env import specs
+from dm_control.rl.control import Environment, Physics
 
 from rltools.dmc_wrappers.base import Wrapper
 from rltools.dmc_wrappers.utils.point_cloud_generator import CameraParams
 
-GRAYSCALE_RGB = np.array([.3, .59, .11]).reshape(3, 1)
+_GRAYSCALE_RGB = np.array([.3, .59, .11]).reshape(3, 1)
 
 
 #TODO: store rgb in uint to save memory.
@@ -17,7 +18,7 @@ class PixelsWrapper(Wrapper):
     Combinations of those modalities are also allowed."""
     _channels_shapes = dict(image=3, depth=1, grayscale=1)
 
-    def __init__(self, env,
+    def __init__(self, env: Environment,
                  render_kwargs: Iterable[CameraParams],
                  channels: Iterable[str]
                  ):
@@ -25,7 +26,7 @@ class PixelsWrapper(Wrapper):
         self._render_kwargs = sorted(render_kwargs)
         self._channels = sorted(channels)
 
-    def observation(self, timestep):
+    def _observation_fn(self, timestep):
         observation = OrderedDict()
         for camera in self._render_kwargs:
             cam_name = camera.get("camera_id")
@@ -51,7 +52,7 @@ class PixelsWrapper(Wrapper):
         return obs_spec
 
 
-def cam_observation(physics,
+def cam_observation(physics: Physics,
                     render_kwargs: CameraParams,
                     channels: Iterable[str]
                     ):
@@ -62,7 +63,7 @@ def cam_observation(physics,
             rgb = (rgb / 255).astype(np.float32)
             value = rgb
             if mode == "grayscale":
-                value = value @ GRAYSCALE_RGB
+                value = value @ _GRAYSCALE_RGB
         elif mode == "depth":
             depth = physics.render(depth=True, **render_kwargs)
             depth = np.expand_dims(depth, axis=-1).astype(np.float32)

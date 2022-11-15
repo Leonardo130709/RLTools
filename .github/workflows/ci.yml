@@ -1,0 +1,35 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements_dev.txt ]; pip install -r requirements.txt
+          if [ -f requirements_dev.txt ]; pip install -r requiremenst_dev.txt
+
+      - name: Linting
+        run: pylint --exit-zero rltools
+
+      - name: Type checking
+        run: python -m mypy --strict rltools
+
+      - name: Testing
+        run: python -m unittest tests

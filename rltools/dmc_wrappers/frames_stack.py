@@ -1,10 +1,9 @@
-from typing import Sequence, Dict
-from collections import deque, OrderedDict
+from collections import deque
 
+import tree
 import numpy as np
 
 from rltools.dmc_wrappers.base import Wrapper
-from rltools.dmc_wrappers.utils.nested import nested_fn
 
 
 class FrameStack(Wrapper):
@@ -18,7 +17,7 @@ class FrameStack(Wrapper):
         self._buffer = None
         return super().reset()
 
-    def observation(self, timestep):
+    def _observation_fn(self, timestep):
         if self._buffer is None:
             self._buffer = deque(
                 self.frames_number * [timestep.observation],
@@ -26,21 +25,11 @@ class FrameStack(Wrapper):
             )
         else:
             self._buffer.append(timestep.observation)
-        return _stack_dicts(self._buffer)
+        return tree.map_structure(lambda *obs: np.stack(obs), *self._buffer)
 
     def observation_spec(self):
         spec_dict = self._env.observation_spec()
-        return nested_fn(
-            lambda spec: spec.replace(shape=(self.frames_number,) + spec.shape),
+        return tree.map_structure(
+            lambda sp: sp.replace(shape=(self.frames_number,) + sp.shape),
             spec_dict
         )
-
-
-def _stack_dicts(frames: Sequence[Dict[str, np.ndarray]]
-                 ) -> Dict[str, np.ndarray]:
-    stacked = OrderedDict()
-    for key in sorted(frames[0].keys()):
-        stacked[key] = np.stack([frame[key] for frame in frames])
-    
-    return stacked
-    

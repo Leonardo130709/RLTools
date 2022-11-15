@@ -1,11 +1,14 @@
 from typing import Optional
+
+import tree
 import numpy as np
 
 from rltools.dmc_wrappers.base import Wrapper
-from rltools.dmc_wrappers.utils.nested import nested_fn
 
 
 class TypesCast(Wrapper):
+    """Gives an option to cast types."""
+
     def __init__(self,
                  env,
                  observation_dtype: Optional[np.dtype] = None,
@@ -35,26 +38,29 @@ class TypesCast(Wrapper):
         return _replace_dtype(self._env.reward_spec(),
                               self._reward_dtype)
 
-    def observation(self, timestep):
+    def _observation_fn(self, timestep):
         return _cast_type(timestep.observation,
                           self._observation_dtype)
 
-    def reward(self, timestep):
+    def _reward_fn(self, timestep):
         return _cast_type(timestep.reward,
                           self._reward_dtype)
 
-    def discount(self, timestep):
+    def _discount_fn(self, timestep):
         return _cast_type(timestep.discount,
                           self._discount_dtype)
 
 
 def _replace_dtype(spec, dtype):
-    if dtype:
-        spec = nested_fn(lambda sp: sp.replace(dtype=dtype), spec)
+    if dtype is not None:
+        spec = tree.map_structure(lambda sp: sp.replace(dtype=dtype), spec)
     return spec
 
 
-def _cast_type(item, dtype):
-    if item and dtype:
-        item = nested_fn(lambda x: np.asarray(x, dtype=dtype), item)
-    return item
+def _cast_type(value, dtype):
+    is_scalar = not isinstance(value, np.array)
+    if dtype is not None:
+        value = tree.map_structure(lambda x: np.asarray(x, dtype=dtype), value)
+        if is_scalar:
+            value = value.item()
+    return value

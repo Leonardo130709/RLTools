@@ -1,9 +1,9 @@
-from typing import Any, Mapping, NamedTuple
+from typing import Any, MutableMapping, NamedTuple
 
 import dm_env
 from dm_env import specs
 
-OBS_SPECS = Mapping[str, specs.Array]
+OBS_SPECS = MutableMapping[str, specs.Array]
 
 
 class EnvironmentSpecs(NamedTuple):
@@ -15,24 +15,31 @@ class EnvironmentSpecs(NamedTuple):
 
 # pylint: disable=no-staticmethod-decorator
 class Wrapper(dm_env.Environment):
-    """This allows to modify methods of an already initialized environment."""
-    
+    """This allows to modify methods of an already initialized environment.
+
+    On reset reward and discount provide default float values instead of Nones.
+    """
+
     def __init__(self, env: dm_env.Environment):
         self._env = env
 
-    def observation(self, timestep: dm_env.TimeStep) -> Any:
+    def _observation_fn(self, timestep: dm_env.TimeStep) -> Any:
         return timestep.observation
 
-    def reward(self, timestep: dm_env.TimeStep) -> float:
+    def _reward_fn(self, timestep: dm_env.TimeStep) -> float:
+        if timestep.reward is None:
+            return 0.
         return timestep.reward
 
-    def done(self, timestep: dm_env.TimeStep) -> bool:
+    def _done_fn(self, timestep: dm_env.TimeStep) -> bool:
         return timestep.last()
 
-    def step_type(self, timestep: dm_env.TimeStep) -> dm_env.StepType:
+    def _step_type_fn(self, timestep: dm_env.TimeStep) -> dm_env.StepType:
         return timestep.step_type
 
-    def discount(self, timestep: dm_env.TimeStep) -> float:
+    def _discount_fn(self, timestep: dm_env.TimeStep) -> float:
+        if timestep.discount is None:
+            return 1.
         return timestep.discount
 
     def step(self, action) -> dm_env.TimeStep:
@@ -45,10 +52,10 @@ class Wrapper(dm_env.Environment):
     def _wrap_timestep(self, timestep) -> dm_env.TimeStep:
         # pylint: disable-next=protected-access
         return timestep._replace(
-            step_type=self.step_type(timestep),
-            reward=self.reward(timestep),
-            discount=self.discount(timestep),
-            observation=self.observation(timestep)
+            step_type=self._step_type_fn(timestep),
+            reward=self._reward_fn(timestep),
+            discount=self._discount_fn(timestep),
+            observation=self._observation_fn(timestep)
         )
 
     def action_spec(self) -> specs.Array:
@@ -60,7 +67,7 @@ class Wrapper(dm_env.Environment):
     def reward_spec(self) -> specs.Array:
         return self._env.reward_spec()
 
-    def discount_spec(self) -> specs.Array:
+    def discount_spec(self) -> specs.BoundedArray:
         return self._env.discount_spec()
 
     @property

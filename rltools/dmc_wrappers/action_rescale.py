@@ -1,6 +1,6 @@
 import numpy as np
-import dm_env.specs
-from dm_env.specs import BoundedArray
+
+from dm_env import specs
 
 from rltools.dmc_wrappers.base import Wrapper
 
@@ -11,7 +11,7 @@ class ActionRescale(Wrapper):
     def __init__(self, env):
         super().__init__(env)
         spec = env.action_spec()
-        assert isinstance(spec, BoundedArray)
+        assert isinstance(spec, specs.BoundedArray)
         low = spec.minimum
         high = spec.maximum
         self._diff = (high - low) / 2.
@@ -25,5 +25,5 @@ class ActionRescale(Wrapper):
         action = (action + 1.) * self._diff + self._low
         return self._env.step(action)
 
-    def action_spec(self) -> dm_env.specs.Array:
+    def action_spec(self):
         return self._spec
