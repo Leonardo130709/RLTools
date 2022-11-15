@@ -1,6 +1,7 @@
-from typing import Any, MutableMapping, NamedTuple
+from typing import MutableMapping, NamedTuple
 
 import dm_env
+import numpy as np
 from dm_env import specs
 
 OBS_SPECS = MutableMapping[str, specs.Array]
@@ -23,7 +24,8 @@ class Wrapper(dm_env.Environment):
     def __init__(self, env: dm_env.Environment):
         self._env = env
 
-    def _observation_fn(self, timestep: dm_env.TimeStep) -> Any:
+    def _observation_fn(self, timestep: dm_env.TimeStep
+                        ) -> MutableMapping[str, np.ndarray]:
         return timestep.observation
 
     def _reward_fn(self, timestep: dm_env.TimeStep) -> float:
@@ -83,5 +85,4 @@ class Wrapper(dm_env.Environment):
     def unwrapped(self) -> dm_env.Environment:
         if hasattr(self._env, "unwrapped"):
             return self._env.unwrapped
-        else:
-            return self._env
+        return self._env

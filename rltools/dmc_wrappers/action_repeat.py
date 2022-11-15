@@ -3,7 +3,7 @@ from rltools.dmc_wrappers.base import Wrapper
 
 class ActionRepeat(Wrapper):
     """Repeat the same action for multiple times."""
-    
+
     def __init__(self, env, frames_number: int):
         super().__init__(env)
         assert frames_number > 0

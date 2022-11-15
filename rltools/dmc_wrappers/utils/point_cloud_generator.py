@@ -8,8 +8,8 @@ PointCloud = np.ndarray
 
 
 class IntrinsicParams(NamedTuple):
-    width: float
-    height: float
+    width: int
+    height: int
     fx: float
     fy: float
     cx: float
@@ -17,8 +17,8 @@ class IntrinsicParams(NamedTuple):
 
 
 class CameraParams(TypedDict):
-    width: float
-    height: float
+    width: int
+    height: int
     camera_id: Union[int, str]
 
 
@@ -31,7 +31,7 @@ def partition_geoms_by_name(physics: Physics,
     First group return ids that are not in `names`.
     """
     names = tuple(names)
-    out_and_in = ([], [])
+    out_and_in: Tuple[List[int], List[int]] = ([], [])
     for _id in geom_ids:
         geom_name = physics.model.id2name(_id, "geom")
         out_and_in[geom_name in names].append(_id)
@@ -57,7 +57,7 @@ def intrinsic_params_from_physics(physics: Physics,
                                   ) -> IntrinsicParams:
     """Conversion to explicit namedtuple type."""
     width, height, camera_id = map(
-        camera_params.get,
+        camera_params.__getitem__,
         ("width", "height", "camera_id")
     )
     fov = physics.named.model.cam_fovy[camera_id]
@@ -118,8 +118,7 @@ class PointCloudGenerator:
         if self.stride < 0:
             adaptive_stride = pcd.shape[0] // self.pn_number
             return pcd[::max(adaptive_stride, 1)]
-        else:
-            return pcd[::self.stride]
+        return pcd[::self.stride]
 
     def _mask(self,
               physics: Physics,

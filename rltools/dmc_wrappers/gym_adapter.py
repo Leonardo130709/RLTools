@@ -1,9 +1,8 @@
 import gym
 import numpy as np
-import dm_env.specs
+import tree
+from dm_env import specs
 from dm_env import TimeStep, StepType, Environment
-
-from rltools.dmc_wrappers.utils.nested import nested_fn
 
 
 # TODO: update gym API >= 0.26.
@@ -33,14 +32,21 @@ class DmcToGym:
     @property
     def observation_space(self):
         spec = self._env.observation_spec()
-        return nested_fn(
-            lambda sp: gym.spaces.Box(
-                -np.inf, np.inf, sp.shape, sp.dtype),
-            spec
-        )
+        
+        def convert_fn(sp):
+            if isinstance(sp, specs.Array):
+                return gym.spaces.Box(-np.inf, np.inf, sp.shape, sp.dtype)
+            elif isinstance(sp, specs.BoundedArray):
+                return gym.spaces.Box(sp.minimum, sp.maximum, 
+                                      sp.shape, sp.dtype)
+            else:
+                raise NotImplemented
+        return tree.map_structure(convert_fn, spec)
 
 
 class GymToDmc:
+    """Convert tuple to proper dm_env.Timestep namedtuple."""
+
     def __init__(self, env):
         self._env = env
 
@@ -62,18 +68,18 @@ class GymToDmc:
 
     def action_spec(self):
         spec = self._env.action_space
-        return dm_env.specs.BoundedArray(minimum=spec.low,
-                                         maximum=spec.high,
-                                         shape=spec.shape,
-                                         dtype=spec.dtype)
+        return specs.BoundedArray(minimum=spec.low,
+                                  maximum=spec.high,
+                                  shape=spec.shape,
+                                  dtype=spec.dtype)
 
     def observation_spec(self):
-        spec = self._env.observation_spec
+        space = self._env.observation_space
 
-        def convert_spec(sp):
+        def convert_fn(sp):
             if sp.low == -np.inf or sp.high == np.inf:
-                return dm_env.specs.Array(shape=sp.shape, dtype=sp.dtype)
-            return dm_env.specs.BoundedArray(
+                return specs.Array(shape=sp.shape, dtype=sp.dtype)
+            return specs.BoundedArray(
                 sp.shape, sp.dtype, sp.low, sp.high)
 
-        return nested_fn(convert_spec, spec)
+        return tree.map_structure(convert_fn, space)

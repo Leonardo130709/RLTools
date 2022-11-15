@@ -7,7 +7,7 @@ from rltools.dmc_wrappers.base import Wrapper
 
 class ActionRescale(Wrapper):
     """Normalize action to [-1, 1] range."""
-    
+
     def __init__(self, env):
         super().__init__(env)
         spec = env.action_spec()

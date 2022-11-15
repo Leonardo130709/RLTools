@@ -56,6 +56,7 @@ def cam_observation(physics: Physics,
                     render_kwargs: CameraParams,
                     channels: Iterable[str]
                     ):
+    """Get an observation from the camera."""
     observation = OrderedDict()
     for mode in channels:
         if mode in ("image", "grayscale"):
@@ -73,5 +74,3 @@ def cam_observation(physics: Physics,
         observation[mode] = value
 
     return observation
-
-

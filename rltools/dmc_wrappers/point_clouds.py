@@ -12,6 +12,8 @@ from rltools.dmc_wrappers.utils.point_cloud_generator import (
 
 
 class PointCloudWrapper(Wrapper):
+    """Add point cloud from dm_control physics to observations dict."""
+
     def __init__(self,
                  env: Environment,
                  pn_number: int,

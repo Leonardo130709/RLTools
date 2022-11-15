@@ -58,7 +58,7 @@ def _replace_dtype(spec, dtype):
 
 
 def _cast_type(value, dtype):
-    is_scalar = not isinstance(value, np.array)
+    is_scalar = not isinstance(value, np.ndarray)
     if dtype is not None:
         value = tree.map_structure(lambda x: np.asarray(x, dtype=dtype), value)
         if is_scalar:

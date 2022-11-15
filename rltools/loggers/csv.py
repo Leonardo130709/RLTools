@@ -1,16 +1,18 @@
-from typing import TextIO, Union
+from typing import Union
+from io import TextIOWrapper
 import csv
 
 from rltools.loggers import base
 
 
 class CSVLogger(base.Logger):
+    """Logging into csv file."""
 
     def __init__(self,
-                 log_file: Union[str, TextIO],
+                 log_file: Union[str, TextIOWrapper],
                  ):
         if isinstance(log_file, str):
-            self._file = open(log_file, "a")
+            self._file = open(log_file, "a", encoding="utf-8")
         else:
             self._file = log_file
 

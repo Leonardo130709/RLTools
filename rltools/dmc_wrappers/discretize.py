@@ -6,7 +6,7 @@ from rltools.dmc_wrappers.base import Wrapper
 
 class DiscreteActionWrapper(Wrapper):
     """Discretizing action space."""
-    
+
     def __init__(self, env, bins: int):
         super().__init__(env)
         act_spec = env.action_spec()
