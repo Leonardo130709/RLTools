@@ -43,6 +43,7 @@ class Config(abc.ABC):
                       parser: Optional[argparse.ArgumentParser] = None
                       ) -> argparse.ArgumentParser:
         """Populate commandline kwargs with a config fields."""
+        # TODO: proper container handler.
         def arg_help(name):
             match = re.search(fr"\s{name}: (.*)\n", cls.__doc__)
             if match:
@@ -52,11 +53,12 @@ class Config(abc.ABC):
         if parser is None:
             parser = argparse.ArgumentParser()
         for field in dataclasses.fields(cls):
+            is_container = isinstance(field.default, tuple)
             parser.add_argument(
                 f"--{field.name}",
-                type=field.type,
+                type=field.type.__args__[0] if is_container else field.type,
                 default=field.default,
                 help=arg_help(field.name),
-                metavar="",
+                nargs="+" if is_container else None,
             )
         return parser
