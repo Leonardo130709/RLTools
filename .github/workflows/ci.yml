@@ -29,4 +29,4 @@ jobs:
         run: python -m mypy rltools
 
       - name: Run tests
-        run: python -m unittest tests
+        run: python -m unittest tests/*.py

@@ -31,5 +31,5 @@ class ConfigTest(unittest.TestCase):
     def test_argparse(self):
         cfg = TestConfig()
         parser = cfg.as_entrypoint()
-        args = parser.parse_args()
+        args, _ = parser.parse_known_args()
         self.assertDictEqual(args.__dict__, dataclasses.asdict(cfg))
