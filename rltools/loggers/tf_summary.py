@@ -26,7 +26,7 @@ class TFSummaryLogger(base.Logger):
         with self._summary.as_default():
             for key in metrics.keys() - [self._step_key]:
                 tf.summary.scalar(
-                    f'{self._label}/{key}',
+                    f"{self._label}/{key}",
                     data=metrics[key],
                     step=step
                 )

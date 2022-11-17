@@ -5,9 +5,9 @@ import numpy as np
 
 BOUNDED_OBS_SHAPE = (2, 2, 1)
 ACT_DIM = 5
-REWARD_SPEC = specs.Array(shape=(), dtype=float, name='reward')
+REWARD_SPEC = specs.Array(shape=(), dtype=float, name="reward")
 DISCOUNT_SPEC = specs.BoundedArray(
-        shape=(), dtype=float, minimum=0., maximum=1., name='discount')
+        shape=(), dtype=float, minimum=0., maximum=1., name="discount")
 
 
 class MockEnv(dm_env.Environment):
@@ -18,7 +18,7 @@ class MockEnv(dm_env.Environment):
                  act_spec: specs.Array,
                  reward_const: float = 1.,
                  discount_const: float = 1.,
-                 time_limit: int = float('inf')
+                 time_limit: int = float("inf")
                  ):
         self._obs_spec = obs_spec
         self._act_spec = act_spec
@@ -60,8 +60,8 @@ class TestEnv(MockEnv):
         obs_spec = dict(
             bounded_obs=specs.BoundedArray(
                 BOUNDED_OBS_SHAPE, np.uint8,
-                minimum=0, maximum=255, name='bounded_obs'),
-            scalar_obs=specs.Array((), np.float32, name='scalar_obs')
+                minimum=0, maximum=255, name="bounded_obs"),
+            scalar_obs=specs.Array((), np.float32, name="scalar_obs")
         )
         if discrete:
             act_spec = specs.DiscreteArray(ACT_DIM)

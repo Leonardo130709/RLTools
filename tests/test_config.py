@@ -1,4 +1,5 @@
 import os
+import sys
 import unittest
 import dataclasses
 
@@ -22,14 +23,19 @@ class ConfigTest(unittest.TestCase):
 
     def test_save_load(self):
         cfg = TestConfig()
-        cfg.save('tmp.yaml')
-        self.assertTrue(os.path.exists('tmp.yaml'))
-        lcfg = TestConfig.load('tmp.yaml')
-        os.remove('tmp.yaml')
+        cfg.save("tmp.yaml")
+        self.assertTrue(os.path.exists("tmp.yaml"))
+        lcfg = TestConfig.load("tmp.yaml")
+        os.remove("tmp.yaml")
         self.assertEqual(lcfg, cfg)
 
     def test_argparse(self):
-        cfg = TestConfig()
-        parser = cfg.as_entrypoint()
-        args, _ = parser.parse_known_args()
-        self.assertDictEqual(args.__dict__, dataclasses.asdict(cfg))
+        orig_argv = sys.argv.copy()
+        sys.argv.extend(["--wrong_type", "4",
+                         "--std_container", "3", "4", "5",
+                         "--proper", "2"])
+        cfg = TestConfig.from_entrypoint()
+        sys.argv = orig_argv
+        self.assertEqual(cfg.wrong_type, 4)
+        self.assertEqual(cfg.std_container, (3, 4, 5))
+        self.assertEqual(cfg.proper, 2.)

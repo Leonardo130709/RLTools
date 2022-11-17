@@ -15,14 +15,14 @@ class Config(abc.ABC):
 
     def save(self, file_path: str):
         """Save as YAML in a specified path."""
-        yaml = YAML(typ='safe', pure=True)
+        yaml = YAML(typ="safe", pure=True)
         with open(file_path, "w", encoding="utf-8") as config_file:
             yaml.dump(dataclasses.asdict(self), config_file)
 
     @classmethod
     def load(cls, file_path: str, **kwargs) -> "Config":
         """Load config from a YAML. Values can by updated by kwargs."""
-        yaml = YAML(typ='safe', pure=True)
+        yaml = YAML(typ="safe", pure=True)
         with open(file_path, "r", encoding="utf-8") as config_file:
             config_dict = yaml.load(config_file)
         config_dict.update(kwargs)
@@ -39,9 +39,9 @@ class Config(abc.ABC):
             setattr(self, field.name, field.type(value))
 
     @classmethod
-    def as_entrypoint(cls,
-                      parser: Optional[argparse.ArgumentParser] = None
-                      ) -> argparse.ArgumentParser:
+    def from_entrypoint(cls,
+                        parser: Optional[argparse.ArgumentParser] = None
+                        ) -> "Config":
         """Populate commandline kwargs with a config fields."""
         # TODO: proper container handler.
         def arg_help(name):
@@ -59,6 +59,7 @@ class Config(abc.ABC):
                 type=field.type.__args__[0] if is_container else field.type,
                 default=field.default,
                 help=arg_help(field.name),
-                nargs="+" if is_container else None,
+                nargs="+" if is_container else "?",
             )
-        return parser
+        args, _ = parser.parse_known_args()
+        return cls(**vars(args))
