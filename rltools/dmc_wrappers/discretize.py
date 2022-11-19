@@ -15,7 +15,7 @@ class DiscreteActionWrapper(Wrapper):
             shape=act_spec.shape + (bins,),
             minimum=0,
             maximum=1,
-            dtype=int
+            dtype=np.int32
         )
         self._spacing = np.linspace(
             act_spec.minimum, act_spec.maximum, bins)

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, get_origin
 
 import abc
 import re
@@ -36,7 +36,7 @@ class Config(abc.ABC):
         """Casts fields to declared types."""
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
-            setattr(self, field.name, field.type(value))
+            setattr(self, field.name, _topy(field.type)(value))
 
     @classmethod
     def from_entrypoint(cls,
@@ -56,10 +56,16 @@ class Config(abc.ABC):
             is_container = isinstance(field.default, tuple)
             parser.add_argument(
                 f"--{field.name}",
-                type=field.type.__args__[0] if is_container else field.type,
+                type=_topy(
+                    field.type.__args__[0] if is_container else field.type),
                 default=field.default,
                 help=arg_help(field.name),
                 nargs="+" if is_container else "?",
             )
         args, _ = parser.parse_known_args()
         return cls(**vars(args))
+
+
+def _topy(dtype):
+    """To support both typing hints and GenericAliases."""
+    return get_origin(dtype) or dtype

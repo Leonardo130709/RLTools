@@ -1,3 +1,4 @@
+from typing import Tuple
 import os
 import sys
 import unittest
@@ -9,7 +10,8 @@ from rltools.config import Config
 @dataclasses.dataclass
 class TestConfig(Config):
     wrong_type: int = "3"
-    std_container: tuple[int, ...] = (1, 2, 3)
+    std_container: Tuple[int, ...] = (1, 2, 3)
+    generic_alias: tuple[float] = (3.,)
     proper: float = 1.
 
 
@@ -33,9 +35,11 @@ class ConfigTest(unittest.TestCase):
         orig_argv = sys.argv.copy()
         sys.argv.extend(["--wrong_type", "4",
                          "--std_container", "3", "4", "5",
+                         "--generic_alias", "6",
                          "--proper", "2"])
         cfg = TestConfig.from_entrypoint()
         sys.argv = orig_argv
         self.assertEqual(cfg.wrong_type, 4)
         self.assertEqual(cfg.std_container, (3, 4, 5))
+        self.assertEqual(cfg.generic_alias, (6.,))
         self.assertEqual(cfg.proper, 2.)
