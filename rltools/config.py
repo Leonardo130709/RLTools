@@ -36,6 +36,10 @@ class Config(abc.ABC):
         """Casts fields to declared types."""
         for field in dataclasses.fields(self):
             value = getattr(self, field.name)
+            if hasattr(field.type, "__args__"):
+                value = _topy(map(_topy(field.type.__args__[0]), value))
+            else:
+                value = _topy(field.type)(value)
             setattr(self, field.name, _topy(field.type)(value))
 
     @classmethod
