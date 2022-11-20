@@ -179,7 +179,7 @@ class DiscreteTest(WrapperTest):
             action_spec=specs.BoundedArray(act_spec.shape + (self._bins,),
                                            minimum=0,
                                            maximum=1,
-                                           dtype=int)
+                                           dtype=np.int32)
         )
 
     def test_limits(self):

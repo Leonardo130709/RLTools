@@ -48,26 +48,41 @@ class Config(abc.ABC):
                         ) -> "Config":
         """Populate commandline kwargs with a config fields."""
         # TODO: proper container handler.
-        def arg_help(name):
-            match = re.search(fr"\s{name}: (.*)\n", cls.__doc__)
+        def arg_help(field):
+            match = re.search(fr"\s{field.name}: (.*)\n", cls.__doc__)
             if match:
                 return match[1]
             return None
 
+        def get_type(field):
+            # TODO: proper bool handler.
+            is_tuple = isinstance(field.default, tuple)
+            if is_tuple:
+                t = _topy(field.type.__args__[0])
+            else:
+                t = _topy(field.type)
+            if t is bool:
+                t = int
+            return t, is_tuple
+
+
         if parser is None:
             parser = argparse.ArgumentParser()
+        known_args = set()
+
         for field in dataclasses.fields(cls):
-            is_container = isinstance(field.default, tuple)
+            known_args.add(field.name)
+            dtype, is_tuple = get_type(field)
             parser.add_argument(
                 f"--{field.name}",
-                type=_topy(
-                    field.type.__args__[0] if is_container else field.type),
+                type=dtype,
                 default=field.default,
-                help=arg_help(field.name),
-                nargs="+" if is_container else "?",
+                help=arg_help(field),
+                nargs="+" if is_tuple else "?",
             )
         args, _ = parser.parse_known_args()
-        return cls(**vars(args))
+        kwargs = {k: v for k, v in vars(args).items() if k in known_args}
+        return cls(**kwargs)
 
 
 def _topy(dtype):

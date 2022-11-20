@@ -14,6 +14,7 @@ class TestConfig(Config):
     generic_alias: tuple[float] = (3,)
     proper: float = 1.
     mutable_container: list[int] = (2, 3.)
+    bool_flag: bool = 1
 
 
 class ConfigTest(unittest.TestCase):
@@ -28,6 +29,7 @@ class ConfigTest(unittest.TestCase):
         self.assertIsInstance(cfg.proper, float)
         self.assertIsInstance(cfg.mutable_container, list)
         self.assertIsInstance(cfg.mutable_container[0], int)
+        self.assertIsInstance(cfg.bool_flag, bool)
 
     def test_save_load(self):
         cfg = TestConfig()
@@ -43,7 +45,9 @@ class ConfigTest(unittest.TestCase):
                          "--std_container", "3", "4", "5",
                          "--generic_alias", "6",
                          "--mutable_container", "7", "8",
-                         "--proper", "2"])
+                         "--proper", "2",
+                         "--bool_flag", "0",
+                         "--unknown_arg", "0"])
         cfg = TestConfig.from_entrypoint()
         sys.argv = orig_argv
         self.assertEqual(cfg.wrong_type, 4)
@@ -51,3 +55,6 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(cfg.generic_alias, (6.,))
         self.assertEqual(cfg.mutable_container, [7, 8])
         self.assertEqual(cfg.proper, 2.)
+        self.assertEqual(cfg.bool_flag, False)
+        self.assertTrue(not hasattr(cfg, "unknown_arg"))
+
