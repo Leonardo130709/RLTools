@@ -23,7 +23,7 @@ class DiscreteActionWrapper(Wrapper):
     def step(self, action):
         action = action.argmax(-1)
         action = np.take_along_axis(self._spacing, action[np.newaxis], 0)
-        return self._env.step(action)
+        return self._env.step(action.squeeze(0))
 
     def action_spec(self):
         return self._action_spec
