@@ -80,13 +80,13 @@ class PointCloudGenerator:
                  cameras_params: Iterable[CameraParams],
                  stride: int = -1,
                  apply_translation: bool = False
-                 ):
+                 ) -> None:
         self.stride = stride
         self.pn_number = pn_number
         self.cameras_params = tuple(cameras_params)
         self.apply_translation = apply_translation
 
-    def __call__(self, physics):
+    def __call__(self, physics) -> PointCloud:
         """Merge cameras views to single point cloud."""
         pcd = np.concatenate([
             self._make_pcd(physics, cam) for cam in self.cameras_params

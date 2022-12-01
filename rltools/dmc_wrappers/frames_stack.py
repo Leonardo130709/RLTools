@@ -2,33 +2,38 @@ from collections import deque
 
 import tree
 import numpy as np
+import dm_env.specs
 
-from rltools.dmc_wrappers.base import Wrapper
+from rltools.dmc_wrappers import base
 
 
-class FrameStack(Wrapper):
+class FrameStack(base.Wrapper):
     """Stack previous observations to form a richer state."""
-    def __init__(self, env, frames_number: int = 1):
+    def __init__(self,
+                 env: dm_env.Environment,
+                 frames_number: int = 1
+                 ) -> None:
         super().__init__(env)
         self.frames_number = frames_number
         self._buffer = None
 
-    def reset(self):
+    def reset(self) -> base.Observation:
         self._buffer = None
         return super().reset()
 
-    def _observation_fn(self, timestep):
+    def _observation_fn(self, timestep: dm_env.TimeStep) -> base.Observation:
+        observation = super()._observation_fn(timestep)
         if self._buffer is None:
             self._buffer = deque(
-                self.frames_number * [timestep.observation],
+                self.frames_number * [observation],
                 maxlen=self.frames_number
             )
         else:
-            self._buffer.append(timestep.observation)
+            self._buffer.append(observation)
         return tree.map_structure(lambda *obs: np.stack(obs), *self._buffer)
 
-    def observation_spec(self):
-        spec_dict = self._env.observation_spec()
+    def observation_spec(self) -> base.ObservationSpec:
+        spec_dict = super().observation_spec()
         return tree.map_structure(
             lambda sp: sp.replace(shape=(self.frames_number,) + sp.shape),
             spec_dict

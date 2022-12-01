@@ -1,14 +1,17 @@
 from typing import MutableMapping, NamedTuple
 
 import dm_env
+import tree
 import numpy as np
 from dm_env import specs
 
-OBS_SPECS = MutableMapping[str, specs.Array]
+Action = np.ndarray
+Observation = MutableMapping[str, specs.Array]
+ObservationSpec = MutableMapping[str, specs.Array]
 
 
 class EnvironmentSpecs(NamedTuple):
-    observation_spec: OBS_SPECS
+    observation_spec: ObservationSpec
     action_spec: specs.BoundedArray
     reward_spec: specs.Array
     discount_spec: specs.BoundedArray
@@ -25,8 +28,8 @@ class Wrapper(dm_env.Environment):
         self._env = env
 
     def _observation_fn(self, timestep: dm_env.TimeStep
-                        ) -> MutableMapping[str, np.ndarray]:
-        return timestep.observation
+                        ) -> Observation:
+        return timestep.observation.copy()
 
     def _reward_fn(self, timestep: dm_env.TimeStep) -> float:
         if timestep.reward is None:
@@ -44,7 +47,7 @@ class Wrapper(dm_env.Environment):
             return 1.
         return timestep.discount
 
-    def step(self, action) -> dm_env.TimeStep:
+    def step(self, action: Action) -> dm_env.TimeStep:
         timestep = self._env.step(action)
         return self._wrap_timestep(timestep)
 
@@ -63,8 +66,9 @@ class Wrapper(dm_env.Environment):
     def action_spec(self) -> specs.Array:
         return self._env.action_spec()
 
-    def observation_spec(self) -> OBS_SPECS:
-        return self._env.observation_spec()
+    def observation_spec(self) -> ObservationSpec:
+        # Copy is safer choice but is it really needed?
+        return self._env.observation_spec().copy()
 
     def reward_spec(self) -> specs.Array:
         return self._env.reward_spec()
@@ -73,7 +77,7 @@ class Wrapper(dm_env.Environment):
         return self._env.discount_spec()
 
     @property
-    def environment_specs(self):
+    def environment_specs(self) -> EnvironmentSpecs:
         return EnvironmentSpecs(
             observation_spec=self.observation_spec(),
             action_spec=self.action_spec(),
@@ -86,3 +90,9 @@ class Wrapper(dm_env.Environment):
         if hasattr(self._env, "unwrapped"):
             return self._env.unwrapped
         return self._env
+
+    def __getattr__(self, item):
+        env = self.unwrapped
+        if hasattr(env, item):
+            return getattr(env, item)
+        raise AttributeError(item)

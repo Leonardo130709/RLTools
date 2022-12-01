@@ -1,8 +1,10 @@
 import unittest
+import re
 
-import dm_env
 import tree
+import dm_env
 import numpy as np
+import numpy.testing as npt
 from dm_env import specs, TimeStep
 
 from rltools import dmc_wrappers
@@ -62,6 +64,22 @@ class BaseTest(unittest.TestCase):
         wtimestep = self._wenv.step(act)
         check = _CheckEqualTs(wtimestep, timestep)
         self.assertTrue(check.are_equal, check)
+
+    def test_getattr(self):
+        if self._wenv is None:
+            return
+
+        nested = self._wenv
+        for _ in range(10):
+            nested = dmc_wrappers.base.Wrapper(nested)
+
+        self.assertTrue(hasattr(nested, "_time_limit"))
+        self.assertEqual(
+            getattr(nested, "_time_limit"), self._env._time_limit)
+
+        self.assertRaises(AttributeError,
+                          lambda: getattr(nested, "attribute_error")
+                          )
 
 
 # abc.ABC didn't worked with unittest.
@@ -195,6 +213,97 @@ class DiscreteTest(WrapperTest):
         self.env.step = _cache
         self.assertTrue(np.allclose(low, -1))
         self.assertTrue(np.allclose(high, 1))
+
+
+class ObsFilterTest(WrapperTest):
+
+    def setUp(self) -> None:
+        super().setUp()
+        self._make_obs_spec = lambda k: {k: self.env.observation_spec()[k]}
+
+    def test_by_callable(self):
+        def predicate(key, spec):
+            return hasattr(spec, "maximum")
+        self._wenv = dmc_wrappers.ObsFilter(self.env, predicate)
+        obs_spec = self._make_obs_spec("bounded_obs")
+        self._assumed_env_specs = self.env.environment_specs._replace(
+            observation_spec=obs_spec
+        )
+        super().test_correspondence()
+        super().test_types()
+
+    def test_by_search(self):
+        self._wenv = dmc_wrappers.ObsFilter(self.env, r"alar",
+                                            method=re.search)
+        obs_spec = self._make_obs_spec("scalar_obs")
+        self._assumed_env_specs = self.env.environment_specs._replace(
+            observation_spec=obs_spec
+        )
+        super().test_correspondence()
+        super().test_types()
+
+    def test_by_match(self):
+        self._wenv = dmc_wrappers.ObsFilter(self.env, r"^.*d_obs.*",
+                                            method=re.match)
+        obs_spec = self._make_obs_spec("bounded_obs")
+        self._assumed_env_specs = self.env.environment_specs._replace(
+            observation_spec=obs_spec
+        )
+        super().test_correspondence()
+        super().test_types()
+
+    def test_by_dtype(self):
+        self._wenv = dmc_wrappers.ObsFilter(self.env, np.uint8)
+        obs_spec = self._make_obs_spec("bounded_obs")
+        self._assumed_env_specs = self.env.environment_specs._replace(
+            observation_spec=obs_spec
+        )
+        super().test_correspondence()
+        super().test_types()
+
+
+class AdaptersTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.dmc_env = mock_env.TestEnv()
+        self.gym_env = dmc_wrappers.DmcToGym(self.dmc_env)
+        self.cycle_dmc_env = dmc_wrappers.GymToDmc(self.gym_env)
+        self.cycle_gym_env = dmc_wrappers.DmcToGym(self.cycle_dmc_env)
+        self.cycle_gym_env.reset()
+
+    def test_reset(self):
+        self.assertTrue(
+            _CheckEqualTs(
+                self.dmc_env.reset(),
+                self.cycle_dmc_env.reset()
+            ).are_equal
+        )
+        npt.assert_equal(self.gym_env.reset(), self.cycle_gym_env.reset())
+
+    def test_observation_specs(self):
+        self.assertDictEqual(self.dmc_env.observation_spec(),
+                             self.cycle_dmc_env.observation_spec()
+                             )
+        self.assertDictEqual(self.gym_env.observation_space,
+                             self.cycle_gym_env.observation_space
+                             )
+
+    def test_action_specs(self):
+        self.assertEqual(self.dmc_env.action_spec(),
+                         self.cycle_dmc_env.action_spec()
+                         )
+        self.assertEqual(self.gym_env.action_space,
+                         self.cycle_gym_env.action_space
+                         )
+
+    def test_step(self):
+        act = self.dmc_env.action_spec().generate_value()
+        self.assertTrue(_CheckEqualTs(self.dmc_env.step(act),
+                                      self.cycle_dmc_env.step(act)))
+        gym_tuple = self.gym_env.step(act)
+        cycle_gym_tuple = self.cycle_gym_env.step(act)
+        for v1, v2 in zip(gym_tuple[0].values(), cycle_gym_tuple[0].values()):
+            npt.assert_equal(v1, v2)
+        self.assertTupleEqual(gym_tuple[1:], cycle_gym_tuple[1:])
 
 
 if __name__ == "__main__":

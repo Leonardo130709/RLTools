@@ -1,29 +1,30 @@
 import numpy as np
-from dm_env import specs
+import dm_env.specs
 
-from rltools.dmc_wrappers.base import Wrapper
+from rltools.dmc_wrappers import base
 
 
-class DiscreteActionWrapper(Wrapper):
+class DiscreteActionWrapper(base.Wrapper):
     """Discretizing action space."""
 
     def __init__(self, env, bins: int):
         super().__init__(env)
         act_spec = env.action_spec()
-        assert isinstance(act_spec, specs.BoundedArray)
-        self._action_spec = specs.BoundedArray(
-            shape=act_spec.shape + (bins,),
-            minimum=0,
-            maximum=1,
+        assert isinstance(act_spec, dm_env.specs.BoundedArray)
+        shape = act_spec.shape + (bins,)
+        self._action_spec = dm_env.specs.BoundedArray(
+            shape=shape,
+            minimum=np.zeros(shape),
+            maximum=np.ones(shape),
             dtype=np.int32
         )
         self._spacing = np.linspace(
             act_spec.minimum, act_spec.maximum, bins)
 
-    def step(self, action):
+    def step(self, action: base.Action) -> dm_env.TimeStep:
         action = action.argmax(-1)
         action = np.take_along_axis(self._spacing, action[np.newaxis], 0)
         return self._env.step(action.squeeze(0))
 
-    def action_spec(self):
+    def action_spec(self) -> dm_env.specs.BoundedArray:
         return self._action_spec

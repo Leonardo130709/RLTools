@@ -2,15 +2,16 @@ from typing import Optional
 
 import tree
 import numpy as np
+import dm_env.specs
 
-from rltools.dmc_wrappers.base import Wrapper
+from rltools.dmc_wrappers import base
 
 
-class TypesCast(Wrapper):
+class TypesCast(base.Wrapper):
     """Gives an option to cast types."""
 
     def __init__(self,
-                 env,
+                 env: dm_env.Environment,
                  observation_dtype: Optional[np.dtype] = None,
                  action_dtype: Optional[np.dtype] = None,
                  reward_dtype: Optional[np.dtype] = None,
@@ -22,11 +23,11 @@ class TypesCast(Wrapper):
         self._reward_dtype = reward_dtype
         self._discount_dtype = discount_dtype
 
-    def observation_spec(self):
+    def observation_spec(self) -> base.ObservationSpec:
         return _replace_dtype(self._env.observation_spec(),
                               self._observation_dtype)
 
-    def action_spec(self):
+    def action_spec(self) -> dm_env.specs.Array:
         return _replace_dtype(self._env.action_spec(),
                               self._action_dtype)
 
