@@ -77,7 +77,7 @@ class GymToDmc:
         space = self._env.observation_space
 
         def convert_fn(sp):
-            if sp.low == -np.inf and sp.high == np.inf:
+            if np.any(sp.low == -np.inf) and np.any(sp.high == np.inf):
                 return dm_env.specs.Array(shape=sp.shape, dtype=sp.dtype)
             return dm_env.specs.BoundedArray(
                 sp.shape, sp.dtype, sp.low, sp.high)

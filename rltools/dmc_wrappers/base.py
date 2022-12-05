@@ -1,7 +1,6 @@
 from typing import MutableMapping, NamedTuple
 
 import dm_env
-import tree
 import numpy as np
 from dm_env import specs
 

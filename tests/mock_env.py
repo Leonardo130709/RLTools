@@ -60,7 +60,9 @@ class TestEnv(MockEnv):
         obs_spec = dict(
             bounded_obs=specs.BoundedArray(
                 BOUNDED_OBS_SHAPE, np.uint8,
-                minimum=0, maximum=255, name="bounded_obs"),
+                minimum=np.full(BOUNDED_OBS_SHAPE, 0),
+                maximum=np.full(BOUNDED_OBS_SHAPE, 255),
+                name="bounded_obs"),
             scalar_obs=specs.Array((), np.float32, name="scalar_obs")
         )
         if discrete:

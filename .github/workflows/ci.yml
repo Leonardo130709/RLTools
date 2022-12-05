@@ -31,7 +31,7 @@ jobs:
 
       - name: Type check
         continue-on-error: true
-        run: python -m mypy --strict rltools
+        run: python -m mypy rltools
 
       - name: Run tests
-        run: python -m unittest tests
+        run: python -m unittest tests/*.py

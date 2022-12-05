@@ -14,8 +14,8 @@ class DiscreteActionWrapper(base.Wrapper):
         shape = act_spec.shape + (bins,)
         self._action_spec = dm_env.specs.BoundedArray(
             shape=shape,
-            minimum=np.zeros(shape),
-            maximum=np.ones(shape),
+            minimum=0,
+            maximum=1,
             dtype=np.int32
         )
         self._spacing = np.linspace(

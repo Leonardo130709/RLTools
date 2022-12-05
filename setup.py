@@ -16,7 +16,7 @@ dev_requirements = open("requirements_dev.txt").readlines()
 setup(
 	name="rltools",
 	version=get_version(),
-	python_requires=">=3.7",
+	python_requires=">=3.9",
 	install_requires=requirements,
 	packages=find_packages(),
 	extras_require={
