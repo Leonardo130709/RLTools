@@ -28,22 +28,15 @@ class Wrapper(dm_env.Environment):
 
     def _observation_fn(self, timestep: dm_env.TimeStep
                         ) -> Observation:
-        return timestep.observation.copy()
+        return timestep.observation
 
     def _reward_fn(self, timestep: dm_env.TimeStep) -> float:
-        if timestep.reward is None:
-            return 0.
         return timestep.reward
-
-    def _done_fn(self, timestep: dm_env.TimeStep) -> bool:
-        return timestep.last()
 
     def _step_type_fn(self, timestep: dm_env.TimeStep) -> dm_env.StepType:
         return timestep.step_type
 
     def _discount_fn(self, timestep: dm_env.TimeStep) -> float:
-        if timestep.discount is None:
-            return 1.
         return timestep.discount
 
     def step(self, action: Action) -> dm_env.TimeStep:
@@ -66,8 +59,7 @@ class Wrapper(dm_env.Environment):
         return self._env.action_spec()
 
     def observation_spec(self) -> ObservationSpec:
-        # Copy is safer choice but is it really needed?
-        return self._env.observation_spec().copy()
+        return self._env.observation_spec()
 
     def reward_spec(self) -> specs.Array:
         return self._env.reward_spec()

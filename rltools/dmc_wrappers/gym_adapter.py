@@ -36,15 +36,15 @@ class DmcToGym:
     @property
     def observation_space(self) -> Mapping[str, gym.spaces.Space]:
         spec = self._env.observation_spec()
-        
+
         def convert_fn(sp):
             if isinstance(sp, dm_env.specs.BoundedArray):
-                return gym.spaces.Box(sp.minimum, sp.maximum, 
-                                      sp.shape, sp.dtype)
-            elif isinstance(sp, dm_env.specs.Array):
+                return gym.spaces.Box(
+                    sp.minimum, sp.maximum, sp.shape, sp.dtype)
+            if isinstance(sp, dm_env.specs.Array):
                 return gym.spaces.Box(-np.inf, np.inf, sp.shape, sp.dtype)
-            else:
-                raise NotImplemented
+            raise NotImplementedError
+
         return tree.map_structure(convert_fn, spec)
 
 
@@ -66,12 +66,14 @@ class GymToDmc:
 
     def action_spec(self) -> dm_env.specs.BoundedArray:
         space = self._env.action_space
-        return dm_env.specs.BoundedArray(
-            minimum=space.low,
-            maximum=space.high,
-            shape=space.shape,
-            dtype=space.dtype
-        )
+        if isinstance(space, gym.spaces.Box):
+            return dm_env.specs.BoundedArray(
+                minimum=space.low,
+                maximum=space.high,
+                shape=space.shape,
+                dtype=space.dtype
+            )
+        raise NotImplementedError
 
     def observation_spec(self) -> base.ObservationSpec:
         space = self._env.observation_space

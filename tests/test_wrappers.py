@@ -11,6 +11,8 @@ from rltools import dmc_wrappers
 
 from . import mock_env
 
+#TODO test inplace observation and specs mutations
+
 
 class _CheckEqualTs:
     def __init__(self, ts1: TimeStep, ts2: TimeStep):
@@ -21,12 +23,11 @@ class _CheckEqualTs:
         self.eq_discounts = ts1.discount == ts2.discount
         self.eq_step_types = ts1.step_type == ts2.step_type
 
-    @property
-    def are_equal(self):
+    def __bool__(self):
         return all([self.eq_observations, self.eq_rewards,
                     self.eq_discounts, self.eq_step_types])
 
-    def __str__(self):
+    def __repr__(self):
         return ", ".join(f"{k}={v}" for k, v in self.__dict__.items())
 
 
@@ -51,10 +52,9 @@ class BaseTest(unittest.TestCase):
 
     def test_reset(self):
         timestep = self._env.reset()
-        timestep = timestep._replace(reward=0., discount=1.)
         wtimestep = self._wenv.reset()
         check = _CheckEqualTs(wtimestep, timestep)
-        self.assertTrue(check.are_equal, check)
+        self.assertTrue(check, check)
 
     def test_step(self):
         act = self._wenv.action_spec().generate_value()
@@ -63,7 +63,7 @@ class BaseTest(unittest.TestCase):
         self._wenv.reset()
         wtimestep = self._wenv.step(act)
         check = _CheckEqualTs(wtimestep, timestep)
-        self.assertTrue(check.are_equal, check)
+        self.assertTrue(check, check)
 
     def test_getattr(self):
         if self._wenv is None:
@@ -85,6 +85,7 @@ class BaseTest(unittest.TestCase):
 # abc.ABC didn't worked with unittest.
 #  Maybe it shouldn't but now test counts will show wrong number (+2 empty).
 class WrapperTest(unittest.TestCase):
+
     def setUp(self) -> None:
         env = mock_env.TestEnv()
         self.env = dmc_wrappers.base.Wrapper(env)
@@ -107,7 +108,9 @@ class WrapperTest(unittest.TestCase):
                 self.fail(str(exp))
 
         # On reset.
-        init_wts = self._wenv.reset()
+        self._wenv.reset()
+        action = self._wenv.action_spec().generate_value()
+        init_wts = self._wenv.step(action)
         validate(self._assumed_env_specs, init_wts)
 
         # On step.
@@ -263,6 +266,7 @@ class ObsFilterTest(WrapperTest):
 
 
 class AdaptersTest(unittest.TestCase):
+
     def setUp(self) -> None:
         self.dmc_env = mock_env.TestEnv()
         self.gym_env = dmc_wrappers.DmcToGym(self.dmc_env)
@@ -275,7 +279,7 @@ class AdaptersTest(unittest.TestCase):
             _CheckEqualTs(
                 self.dmc_env.reset(),
                 self.cycle_dmc_env.reset()
-            ).are_equal
+            )
         )
         npt.assert_equal(self.gym_env.reset(), self.cycle_gym_env.reset())
 
@@ -304,6 +308,57 @@ class AdaptersTest(unittest.TestCase):
         for v1, v2 in zip(gym_tuple[0].values(), cycle_gym_tuple[0].values()):
             npt.assert_equal(v1, v2)
         self.assertTupleEqual(gym_tuple[1:], cycle_gym_tuple[1:])
+
+
+class TimeLimitTest(WrapperTest):
+
+    def setUp(self) -> None:
+        super().setUp()
+
+        self._wenv = dmc_wrappers.TimeLimit(self.env, 10)
+        self._assumed_env_specs = self.env.environment_specs
+
+    def test_reset(self):
+        ts1 = self.env.reset()
+        ts2 = self._wenv.reset()
+        check = _CheckEqualTs(ts1, ts2)
+        self.assertTrue(check, check)
+
+    def test_truncation(self):
+        self._wenv.reset()
+        done = False
+        steps = 0
+        act_space = self._wenv.action_spec()
+        action = np.zeros(act_space.shape, act_space.dtype)
+        while not done:
+            steps += 1
+            ts = self._wenv.step(action)
+            done = ts.last()
+
+        self.assertEqual(ts.step_type, dm_env.StepType.LAST)
+        self.assertEqual(ts.discount, 1.)
+        self.assertEqual(steps, self._wenv._time_limit)
+
+
+class VectorizeTest(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.num_envs = 3
+        env_fn = [lambda: mock_env.TestEnv() for _ in range(self.num_envs)]
+        self.env = env_fn[0]()
+        self.venv = dmc_wrappers.Vectorize(env_fn)
+
+    def test_specs(self):
+        self.assertEqual(self.env.action_spec(), self.venv.action_spec())
+        self.assertEqual(self.env.observation_spec(),
+                         self.venv.observation_spec()
+                         )
+
+    def test_timestep(self):
+        ts = self.env.reset()
+        vts = self.venv.reset()
+        check = _CheckEqualTs(ts, vts[0])
+        self.assertTrue(check, check)
 
 
 if __name__ == "__main__":

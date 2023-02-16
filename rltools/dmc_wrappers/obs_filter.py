@@ -67,4 +67,3 @@ def _(pattern: re.Pattern, method: ReMatch = re.search) -> Predicate:
 @_predicate_factory.register
 def _(dtype: type) -> Predicate:
     return lambda key, spec: spec.dtype == dtype
-
