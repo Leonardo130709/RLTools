@@ -1,8 +1,11 @@
+import collections.abc
+
 import numpy as np
 import dm_env.specs
-from dm_control.rl.control import flatten_observation, FLAT_OBSERVATION_KEY
 
 from rltools.dmc_wrappers import base
+
+FLAT_OBSERVATION_KEY = "observations"
 
 
 class StatesWrapper(base.Wrapper):
@@ -24,3 +27,32 @@ class StatesWrapper(base.Wrapper):
                 shape=(int(dim),), dtype=np.float32,
                 name=FLAT_OBSERVATION_KEY)
         }
+
+
+# taken from dm_control.
+def flatten_observation(observation, output_key=FLAT_OBSERVATION_KEY):
+    """Flattens multiple observation arrays into a single numpy array.
+
+    Args:
+    observation: A mutable mapping from observation names to numpy arrays.
+    output_key: The key for the flattened observation array in the output.
+
+    Returns:
+    A mutable mapping of the same type as `observation`. This will contain a
+    single key-value pair consisting of `output_key` and the flattened
+    and concatenated observation array.
+
+    Raises:
+    ValueError: If `observation` is not a `collections.abc.MutableMapping`.
+    """
+    if not isinstance(observation, collections.abc.MutableMapping):
+        raise ValueError('Can only flatten dict-like observations.')
+
+    if isinstance(observation, collections.OrderedDict):
+        keys = observation.keys()
+    else:
+        # Keep a consistent ordering for other mappings.
+        keys = sorted(observation.keys())
+
+    observation_arrays = [observation[key].ravel() for key in keys]
+    return type(observation)([(output_key, np.concatenate(observation_arrays))])
