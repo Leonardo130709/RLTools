@@ -340,13 +340,13 @@ class TimeLimitTest(WrapperTest):
         self.assertEqual(steps, self._wenv._time_limit)
 
 
-class VectorizeTest(unittest.TestCase):
+class AsyncTest(unittest.TestCase):
 
     def setUp(self) -> None:
         self.num_envs = 3
         env_fn = [lambda: mock_env.TestEnv() for _ in range(self.num_envs)]
         self.env = env_fn[0]()
-        self.venv = dmc_wrappers.Vectorize(env_fn)
+        self.venv = dmc_wrappers.AsyncEnv(env_fn)
 
     def test_specs(self):
         self.assertEqual(self.env.action_spec(), self.venv.action_spec())
@@ -354,9 +354,50 @@ class VectorizeTest(unittest.TestCase):
                          self.venv.observation_spec()
                          )
 
-    def test_timestep(self):
+    def test_reset(self):
         ts = self.env.reset()
         vts = self.venv.reset()
+        check = _CheckEqualTs(ts, vts[0])
+        self.assertTrue(check, check)
+
+    def test_step(self):
+        self.env.reset()
+        self.venv.reset()
+        act = self.venv.action_spec().generate_value()
+        actions = np.repeat(act, 3, 0)
+        vts = self.venv.step(actions)
+        ts = self.env.step(act)
+        check = _CheckEqualTs(ts, vts[0])
+        self.assertTrue(check, check)
+
+
+class SequentialTest(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.num_envs = 3
+        env_fn = [lambda: mock_env.TestEnv() for _ in range(self.num_envs)]
+        self.env = env_fn[0]()
+        self.venv = dmc_wrappers.SequentialEnv(env_fn)
+
+    def test_specs(self):
+        self.assertEqual(self.env.action_spec(), self.venv.action_spec())
+        self.assertEqual(self.env.observation_spec(),
+                         self.venv.observation_spec()
+                         )
+
+    def test_reset(self):
+        ts = self.env.reset()
+        vts = self.venv.reset()
+        check = _CheckEqualTs(ts, vts[0])
+        self.assertTrue(check, check)
+
+    def test_step(self):
+        self.env.reset()
+        self.venv.reset()
+        act = self.venv.action_spec().generate_value()
+        actions = np.repeat(act, 3, 0)
+        vts = self.venv.step(actions)
+        ts = self.env.step(act)
         check = _CheckEqualTs(ts, vts[0])
         self.assertTrue(check, check)
 

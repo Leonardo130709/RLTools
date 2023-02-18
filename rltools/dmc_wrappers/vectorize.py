@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, Optional, List
+from typing import Callable, Sequence, Optional, List
 import multiprocessing as mp
 import multiprocessing.connection
 from enum import IntEnum
@@ -58,14 +58,14 @@ def _worker(ctor: _EnvFactory,
 
 
 # TODO: add support for arbitrary method or attr call.
-class Vectorize(dm_env.Environment):
+class AsyncEnv(dm_env.Environment):
     """Creates multiple environment instances and calls them simultaneously
     when acting. This may improve performance when policy represented by NN."""
 
     def __init__(self,
-                 env_fns: Iterable[_EnvFactory],
+                 env_fns: Sequence[_EnvFactory],
                  context: Optional[str] = None,
-                 daemon: bool = True
+                 daemon: bool = False
                  ) -> None:
         ctx = mp.get_context(context)
         self.env_fns = list(env_fns)
@@ -122,3 +122,32 @@ class Vectorize(dm_env.Environment):
         self._reward_spec = env.reward_spec()
         self._discount_spec = env.discount_spec()
         env.close()
+
+
+class SequentialEnv(dm_env.Environment):
+
+    def __init__(self,
+                 env_fns: Sequence[_EnvFactory],
+                 ):
+        self.env_fns = env_fns
+        self._envs = [fn() for fn in env_fns]
+
+    def reset(self):
+        return [env.reset() for env in self._envs]
+
+    def step(self, actions: Sequence[np.ndarray]) -> List[dm_env.TimeStep]:
+        return [
+            env.step(action) for env, action in zip(self._envs, actions)
+                ]
+
+    def action_spec(self):
+        return self._envs[0].action_spec()
+
+    def observation_spec(self):
+        return self._envs[0].observation_spec()
+
+    def reward_spec(self):
+        return self._envs[0].reward_spec()
+
+    def discount_spec(self):
+        return self._envs[0].discount_spec()
