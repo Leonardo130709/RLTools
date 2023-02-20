@@ -84,13 +84,13 @@ class AsyncEnv(dm_env.Environment):
             process.start()
             child_pipe.close()
 
-    def reset(self) -> List[dm_env.TimeStep]:
+    def reset(self) -> dm_env.TimeStep:
         for pipe in self._parent_pipes:
             pipe.send((_Commands.RESET, None))
 
         return self._wait_results()
 
-    def step(self, actions: np.ndarray) -> List[dm_env.TimeStep]:
+    def step(self, actions: np.ndarray) -> dm_env.TimeStep:
         for action, pipe in zip(actions, self._parent_pipes):
             pipe.send((_Commands.STEP, action))
 
@@ -112,8 +112,8 @@ class AsyncEnv(dm_env.Environment):
         for pipe in self._parent_pipes:
             pipe.send((_Commands.CLOSE, None))
 
-    def _wait_results(self) -> List[dm_env.TimeStep]:
-        return [pipe.recv() for pipe in self._parent_pipes]
+    def _wait_results(self) -> dm_env.TimeStep:
+        return _stack_timesteps([pipe.recv() for pipe in self._parent_pipes])
 
     def _setup_specs(self):
         env = self.env_fns[0]()
@@ -125,29 +125,38 @@ class AsyncEnv(dm_env.Environment):
 
 
 class SequentialEnv(dm_env.Environment):
+    """Sequential wrapper for computationally simple envs
+    to mitigate multiprocessing overheads."""
 
     def __init__(self,
                  env_fns: Sequence[_EnvFactory],
-                 ):
+                 ) -> None:
         self.env_fns = env_fns
         self._envs = [fn() for fn in env_fns]
 
-    def reset(self):
-        return [env.reset() for env in self._envs]
+    def reset(self) -> dm_env.TimeStep:
+        return _stack_timesteps([env.reset() for env in self._envs])
 
-    def step(self, actions: Sequence[np.ndarray]) -> List[dm_env.TimeStep]:
-        return [
+    def step(self, actions: Sequence[np.ndarray]) -> dm_env.TimeStep:
+        return _stack_timesteps([
             env.step(action) for env, action in zip(self._envs, actions)
-                ]
+                ])
 
-    def action_spec(self):
+    def action_spec(self) -> dm_env.specs.Array:
         return self._envs[0].action_spec()
 
-    def observation_spec(self):
+    def observation_spec(self) -> ObservationSpec:
         return self._envs[0].observation_spec()
 
-    def reward_spec(self):
+    def reward_spec(self) -> dm_env.specs.Array:
         return self._envs[0].reward_spec()
 
-    def discount_spec(self):
+    def discount_spec(self) -> dm_env.specs.BoundedArray:
         return self._envs[0].discount_spec()
+
+
+def _stack_timesteps(timesteps: List[dm_env.TimeStep]) -> dm_env.TimeStep:
+    """Makes TimeStep methods visible.
+    Note that StepType will be replaced by its numeric value."""
+    return tree.map_structure(lambda *t: np.stack(t), *timesteps)
+

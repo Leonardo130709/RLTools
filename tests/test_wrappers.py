@@ -340,6 +340,10 @@ class TimeLimitTest(WrapperTest):
         self.assertEqual(steps, self._wenv._time_limit)
 
 
+def _tree_slice(tree_, sl: slice):
+    return tree.map_structure(lambda t: t[sl], tree_)
+
+
 class AsyncTest(unittest.TestCase):
 
     def setUp(self) -> None:
@@ -357,7 +361,7 @@ class AsyncTest(unittest.TestCase):
     def test_reset(self):
         ts = self.env.reset()
         vts = self.venv.reset()
-        check = _CheckEqualTs(ts, vts[0])
+        check = _CheckEqualTs(ts, _tree_slice(vts, 0))
         self.assertTrue(check, check)
 
     def test_step(self):
@@ -367,7 +371,7 @@ class AsyncTest(unittest.TestCase):
         actions = np.repeat(act, 3, 0)
         vts = self.venv.step(actions)
         ts = self.env.step(act)
-        check = _CheckEqualTs(ts, vts[0])
+        check = _CheckEqualTs(ts, _tree_slice(vts, 0))
         self.assertTrue(check, check)
 
 
@@ -388,7 +392,7 @@ class SequentialTest(unittest.TestCase):
     def test_reset(self):
         ts = self.env.reset()
         vts = self.venv.reset()
-        check = _CheckEqualTs(ts, vts[0])
+        check = _CheckEqualTs(ts, _tree_slice(vts, 0))
         self.assertTrue(check, check)
 
     def test_step(self):
@@ -398,7 +402,7 @@ class SequentialTest(unittest.TestCase):
         actions = np.repeat(act, 3, 0)
         vts = self.venv.step(actions)
         ts = self.env.step(act)
-        check = _CheckEqualTs(ts, vts[0])
+        check = _CheckEqualTs(ts, _tree_slice(vts, 0))
         self.assertTrue(check, check)
 
 
