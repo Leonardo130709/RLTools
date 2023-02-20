@@ -46,7 +46,7 @@ def flatten_observation(observation, output_key=FLAT_OBSERVATION_KEY):
     ValueError: If `observation` is not a `collections.abc.MutableMapping`.
     """
     if not isinstance(observation, collections.abc.MutableMapping):
-        raise ValueError('Can only flatten dict-like observations.')
+        raise ValueError("Can only flatten dict-like observations.")
 
     if isinstance(observation, collections.OrderedDict):
         keys = observation.keys()

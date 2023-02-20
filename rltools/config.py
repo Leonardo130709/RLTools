@@ -34,12 +34,10 @@ class Config(abc.ABC):
         yaml = YAML(typ="safe", pure=True)
         with open(file_path, "r", encoding="utf-8") as config_file:
             config_dict = yaml.load(config_file)
-        config_dict.update(kwargs)
-
-        known_names = tuple(
-            map(lambda field: field.name, dataclasses.fields(cls))
+        config_dict.update(
+            {k: v for k, v in kwargs.items() if
+             k in cls.__annotations__}
         )
-        config_dict = {k: v for k, v in config_dict.items() if k in known_names}
         return cls(**config_dict)
 
     def __post_init__(self) -> None:
@@ -72,8 +70,9 @@ class Config(abc.ABC):
         if parser is None:
             parser = argparse.ArgumentParser()
 
-        def _add_argument(field: dataclasses.Field) -> typing.Dict[str, str]:
-            """Extract all the possible information from the instance."""
+        def _add_argument(field: dataclasses.Field) -> dict[str, str]:
+            """Extract all possible information from the class."""
+            # TODO: this is being called on an each field instead of once.
             action = dict(dest=field.name, default=field.default)
 
             # Parse docstring.

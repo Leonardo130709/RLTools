@@ -56,6 +56,7 @@ class MockEnv(dm_env.Environment):
 
 
 class TestEnv(MockEnv):
+
     def __init__(self, discrete: bool = False):
         obs_spec = dict(
             bounded_obs=specs.BoundedArray(

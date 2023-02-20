@@ -1,4 +1,5 @@
-from typing import Callable, Sequence, Optional, List
+from typing import Optional
+from collections.abc import Sequence, Callable
 import multiprocessing as mp
 import multiprocessing.connection
 from enum import IntEnum
@@ -155,7 +156,7 @@ class SequentialEnv(dm_env.Environment):
         return self._envs[0].discount_spec()
 
 
-def _stack_timesteps(timesteps: List[dm_env.TimeStep]) -> dm_env.TimeStep:
+def _stack_timesteps(timesteps: list[dm_env.TimeStep]) -> dm_env.TimeStep:
     """Makes TimeStep methods visible.
     Note that StepType will be replaced by its numeric value."""
     return tree.map_structure(lambda *t: np.stack(t), *timesteps)

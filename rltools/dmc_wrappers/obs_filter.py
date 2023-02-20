@@ -7,7 +7,6 @@ import dm_env.specs
 from rltools.dmc_wrappers import base
 
 Predicate = Callable[[str, dm_env.specs.Array], bool]
-Pattern = Union[str, re.Pattern]
 ReMatch = Callable[[re.Pattern, str], re.Match]
 
 

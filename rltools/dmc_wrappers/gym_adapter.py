@@ -1,14 +1,21 @@
-from typing import Tuple, Mapping
+from collections.abc import MutableMapping
 
-import gym
 import tree
 import numpy as np
 import dm_env.specs
 
 from rltools.dmc_wrappers import base
 
+try:
+    import gym
+    if (_ver := gym.__version__) >= "0.26":
+        print(f"Incompatible gym version: {_ver}")
+except ImportError:
+    print("gym<0.26 is required to use gym API.")
+    raise
 
-# TODO: update gym API >= 0.26.
+
+# TODO: update gymnasium API.
 class DmcToGym:
     """ Unpacks dm_env.TimeStep to gym-like tuple. Cannot be wrapped further."""
 
@@ -16,7 +23,7 @@ class DmcToGym:
         self._env = env
 
     def step(self, action: np.ndarray
-             ) -> Tuple[base.Observation, float, bool, float]:
+             ) -> tuple[base.Observation, float, bool, float]:
         timestep = self._env.step(action)
         obs = timestep.observation
         done = timestep.last()
@@ -34,7 +41,7 @@ class DmcToGym:
             spec.minimum, spec.maximum, spec.shape, spec.dtype)
 
     @property
-    def observation_space(self) -> Mapping[str, gym.spaces.Space]:
+    def observation_space(self) -> MutableMapping[str, gym.spaces.Space]:
         spec = self._env.observation_spec()
 
         def convert_fn(sp):

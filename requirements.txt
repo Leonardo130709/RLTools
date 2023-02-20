@@ -1,3 +1,4 @@
+dm_env
 numpy
 ruamel.YAML
 tensorboard

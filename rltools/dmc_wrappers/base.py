@@ -1,4 +1,5 @@
-from typing import MutableMapping, NamedTuple
+from typing import NamedTuple
+from collections.abc import MutableMapping
 
 import dm_env
 import numpy as np
