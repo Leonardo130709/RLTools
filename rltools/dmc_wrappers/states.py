@@ -20,7 +20,7 @@ class StatesWrapper(base.Wrapper):
     def observation_spec(self) -> base.ObservationSpec:
         dim = sum(
             np.prod(ar.shape)
-            for ar in self._env.observation_spec().values()
+            for ar in self.env.observation_spec().values()
         )
         return {
             FLAT_OBSERVATION_KEY: dm_env.specs.Array(
@@ -29,8 +29,10 @@ class StatesWrapper(base.Wrapper):
         }
 
 
-# taken from dm_control.
-def flatten_observation(observation, output_key=FLAT_OBSERVATION_KEY):
+# taken directly from dm_control rep.
+def flatten_observation(observation: base.Observation,
+                        output_key: str = FLAT_OBSERVATION_KEY
+                        ) -> base.Observation:
     """Flattens multiple observation arrays into a single numpy array.
 
     Args:

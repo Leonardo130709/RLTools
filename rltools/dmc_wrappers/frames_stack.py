@@ -8,7 +8,11 @@ from rltools.dmc_wrappers import base
 
 
 class FrameStack(base.Wrapper):
-    """Stack previous observations to form a richer state."""
+    """Stack previous observations to form a richer state.
+
+    Naive implementation that does not alias consecutive frames.
+    """
+
     def __init__(self,
                  env: dm_env.Environment,
                  frames_number: int = 1
@@ -17,12 +21,12 @@ class FrameStack(base.Wrapper):
         self.frames_number = frames_number
         self._buffer = None
 
-    def reset(self) -> base.Observation:
+    def reset(self) -> dm_env.TimeStep:
         self._buffer = None
         return super().reset()
 
     def _observation_fn(self, timestep: dm_env.TimeStep) -> base.Observation:
-        observation = super()._observation_fn(timestep)
+        observation = timestep.observation
         if self._buffer is None:
             self._buffer = deque(
                 self.frames_number * [observation],

@@ -126,7 +126,6 @@ class WrapperTest(unittest.TestCase):
         if self._wenv is None:
             return
 
-        self.assertIsInstance(self._wenv, dm_env.Environment)
         self.assertIsInstance(
             self._wenv.environment_specs, dmc_wrappers.EnvironmentSpecs)
 
@@ -326,18 +325,17 @@ class TimeLimitTest(WrapperTest):
 
     def test_truncation(self):
         self._wenv.reset()
-        done = False
         steps = 0
         act_space = self._wenv.action_spec()
         action = np.zeros(act_space.shape, act_space.dtype)
-        while not done:
+        ts = self._wenv.reset()
+        while not ts.last():
             steps += 1
             ts = self._wenv.step(action)
-            done = ts.last()
 
         self.assertEqual(ts.step_type, dm_env.StepType.LAST)
         self.assertEqual(ts.discount, 1.)
-        self.assertEqual(steps, self._wenv._time_limit)
+        self.assertEqual(steps, self._wenv.time_limit)
 
 
 def _tree_slice(tree_, sl: slice):
@@ -404,11 +402,3 @@ class SequentialTest(unittest.TestCase):
         ts = self.env.step(act)
         check = _CheckEqualTs(ts, _tree_slice(vts, 0))
         self.assertTrue(check, check)
-
-
-if __name__ == "__main__":
-    unittest.main()
-
-
-
-

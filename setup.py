@@ -10,17 +10,21 @@ def get_version():
 	return version
 
 
-requirements = open("requirements.txt").readlines()
-dev_requirements = open("requirements_dev.txt").readlines()
+_dmc_wrappers_req = ["dm_env"]
+_loggers_req = ["tensorflow"]
+_config_req = ["ruamel.YAML"]
+_all_req = _dmc_wrappers_req + _loggers_req + _config_req
 
 setup(
 	name="rltools",
 	version=get_version(),
 	python_requires=">=3.9",
-	install_requires=requirements,
+	install_requires=["numpy"],
 	packages=find_packages(),
 	extras_require={
-		"gym": ["gym"],
-		"dev": dev_requirements
+		"dmc_wrappers": _dmc_wrappers_req,
+		"loggers": _loggers_req,
+		"config": _config_req,
+		"all": _all_req
 	}
 )

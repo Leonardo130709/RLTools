@@ -10,18 +10,21 @@ class ActionRepeat(base.Wrapper):
                  env: dm_env.Environment,
                  frames_number: int
                  ) -> None:
-        super().__init__(env)
         assert frames_number > 0
+        super().__init__(env)
         self.frames_number = frames_number
 
+    def reset(self) -> dm_env.TimeStep:
+        return self.env.reset()
+
     def step(self, action: base.Action) -> dm_env.TimeStep:
-        rew_sum = 0.
+        reward = 0.
         discount = 1.
         for _ in range(self.frames_number):
-            timestep = self._env.step(action)
-            rew_sum += discount * timestep.reward
+            timestep = self.env.step(action)
+            reward += timestep.reward
             discount *= timestep.discount
             if timestep.last():
                 break
         # pylint: disable-next=protected-access
-        return timestep._replace(reward=rew_sum, discount=discount)
+        return timestep._replace(reward=reward, discount=discount)

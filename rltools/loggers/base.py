@@ -1,11 +1,13 @@
 import abc
-from typing import Mapping, Any
+from typing import Dict
 
-Metrics = Mapping[str, Any]
+import numpy as np
+
+Metrics = Dict[str, np.numeric]
 
 
 class Logger(abc.ABC):
-    """Handles metrics stream."""
+    """Handle metrics stream."""
 
     @abc.abstractmethod
     def write(self, metrics: Metrics) -> None:

@@ -10,7 +10,7 @@ class CSVLogger(base.Logger):
 
     def __init__(self,
                  log_file: Union[str, TextIOWrapper],
-                 ):
+                 ) -> None:
         if isinstance(log_file, str):
             self._file = open(log_file, "a", encoding="utf-8")
         else:
@@ -18,7 +18,7 @@ class CSVLogger(base.Logger):
 
         self._writer = None
 
-    def write(self, metrics):
+    def write(self, metrics) -> None:
         if self._writer is None:
             self._writer = csv.DictWriter(
                 self._file,
@@ -30,7 +30,7 @@ class CSVLogger(base.Logger):
 
         self._writer.writerow(metrics)
 
-    def close(self):
+    def close(self) -> None:
         self._file.flush()
         self._file.close()
         self._writer = None

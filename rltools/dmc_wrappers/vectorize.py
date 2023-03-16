@@ -15,7 +15,6 @@ _EnvFactory = Callable[[], dm_env.Environment]
 
 class _Commands(IntEnum):
     """Exposed methods."""
-
     OBS_SPEC = 0
     ACT_SPEC = 1
     REW_SPEC = 2
@@ -111,7 +110,10 @@ class AsyncEnv(dm_env.Environment):
 
     def close(self):
         for pipe in self._parent_pipes:
-            pipe.send((_Commands.CLOSE, None))
+            if not pipe.closed:
+                pipe.close()
+        for process in self._processes:
+            process.join()
 
     def _wait_results(self) -> dm_env.TimeStep:
         return _stack_timesteps([pipe.recv() for pipe in self._parent_pipes])
@@ -133,31 +135,30 @@ class SequentialEnv(dm_env.Environment):
                  env_fns: Sequence[_EnvFactory],
                  ) -> None:
         self.env_fns = env_fns
-        self._envs = [fn() for fn in env_fns]
+        self.envs = [fn() for fn in env_fns]
 
     def reset(self) -> dm_env.TimeStep:
-        return _stack_timesteps([env.reset() for env in self._envs])
+        return _stack_timesteps([env.reset() for env in self.envs])
 
-    def step(self, actions: Sequence[np.ndarray]) -> dm_env.TimeStep:
+    def step(self, actions: np.ndarray) -> dm_env.TimeStep:
         return _stack_timesteps([
-            env.step(action) for env, action in zip(self._envs, actions)
+            env.step(action) for env, action in zip(self.envs, actions)
                 ])
 
     def action_spec(self) -> dm_env.specs.Array:
-        return self._envs[0].action_spec()
+        return self.envs[0].action_spec()
 
     def observation_spec(self) -> ObservationSpec:
-        return self._envs[0].observation_spec()
+        return self.envs[0].observation_spec()
 
     def reward_spec(self) -> dm_env.specs.Array:
-        return self._envs[0].reward_spec()
+        return self.envs[0].reward_spec()
 
     def discount_spec(self) -> dm_env.specs.BoundedArray:
-        return self._envs[0].discount_spec()
+        return self.envs[0].discount_spec()
 
 
 def _stack_timesteps(timesteps: list[dm_env.TimeStep]) -> dm_env.TimeStep:
     """Makes TimeStep methods visible.
     Note that StepType will be replaced by its numeric value."""
     return tree.map_structure(lambda *t: np.stack(t), *timesteps)
-

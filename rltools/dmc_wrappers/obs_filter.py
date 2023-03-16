@@ -1,5 +1,5 @@
-from typing import Union, Callable
 import re
+from typing import Union, Callable
 from functools import singledispatch
 
 import dm_env.specs
@@ -43,7 +43,7 @@ class ObsFilter(base.Wrapper):
         return self._filter(timestep.observation)
 
     def observation_spec(self) -> base.ObservationSpec:
-        obs_spec = self._env.observation_spec()
+        obs_spec = self.env.observation_spec()
         return self._filter(obs_spec)
 
 
