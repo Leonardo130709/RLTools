@@ -1,25 +1,20 @@
 import typing
-import abc
 import re
 import argparse
 import dataclasses
 
 from ruamel.yaml import YAML
 
-_ValidType = typing.Union[int, float, bool, str, list, tuple]
-_INVALID_TYPE_MSG = "Flat and homogeneous types " \
-                    f"are only supported: {typing.get_args(_ValidType)}"
-
 
 # TODO: freeze it but with types conversion; add kw_only later.
 @dataclasses.dataclass
-class Config(abc.ABC):
-    """Config object with all the hyperparameters.
+class Config:
+    """Object to store hyperparameters.
 
-    Config avoids nested and heterogeneous types,
+    This config avoids nested and heterogeneous types,
     so only a subset of containers are supported: list, tuple, set.
     Fancy Union types are handled by the first option. Optional is supported.
-    Docstring is used to derive help msg for ArgumentParser.
+    Docstring is used to derive help msg for an ArgumentParser.
     """
 
     def save(self, file_path: str) -> None:
@@ -42,13 +37,9 @@ class Config(abc.ABC):
 
     def __post_init__(self) -> None:
         """Casts fields to declared types."""
-        valid_types = tuple(map(_topy, typing.get_args(_ValidType)))
         for field in dataclasses.fields(self):
             ftype = _strip_union(field.type)
             fdtype = _topy(ftype)
-            # Validate
-            if fdtype not in valid_types:
-                raise TypeError(field.type, _INVALID_TYPE_MSG)
 
             value = getattr(self, field.name)
             args = typing.get_args(ftype)
