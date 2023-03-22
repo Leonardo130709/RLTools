@@ -1,9 +1,7 @@
 import abc
 from typing import Dict
 
-import numpy as np
-
-Metrics = Dict[str, np.numeric]
+Metrics = Dict[str, float]
 
 
 class Logger(abc.ABC):
