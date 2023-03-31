@@ -29,9 +29,10 @@ class Config:
         yaml = YAML(typ="safe", pure=True)
         with open(file_path, "r", encoding="utf-8") as config_file:
             config_dict = yaml.load(config_file)
+        known_fields = map(lambda f: f.name, dataclasses.fields(cls))
         config_dict.update(
             {k: v for k, v in kwargs.items() if
-             k in cls.__annotations__}
+             k in known_fields}
         )
         return cls(**config_dict)
 
