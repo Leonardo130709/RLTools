@@ -1,6 +1,6 @@
 cloudpickle
 dm_env
-gym<0.26
+gymnasium
 numpy
 ruamel.YAML
 tensorflow

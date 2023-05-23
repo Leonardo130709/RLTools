@@ -268,9 +268,9 @@ class AdaptersTest(unittest.TestCase):
 
     def setUp(self) -> None:
         self.dmc_env = mock_env.TestEnv()
-        self.gym_env = dmc_wrappers.DmcToGym(self.dmc_env)
-        self.cycle_dmc_env = dmc_wrappers.GymToDmc(self.gym_env)
-        self.cycle_gym_env = dmc_wrappers.DmcToGym(self.cycle_dmc_env)
+        self.gym_env = dmc_wrappers.DmcToGymnasium(self.dmc_env)
+        self.cycle_dmc_env = dmc_wrappers.GymnasiumToDmc(self.gym_env)
+        self.cycle_gym_env = dmc_wrappers.DmcToGymnasium(self.cycle_dmc_env)
         self.cycle_gym_env.reset()
 
     def test_reset(self):
@@ -402,3 +402,7 @@ class SequentialTest(unittest.TestCase):
         ts = self.env.step(act)
         check = _CheckEqualTs(ts, _tree_slice(vts, 0))
         self.assertTrue(check, check)
+
+
+if __name__ == "__main__":
+    unittest.main()

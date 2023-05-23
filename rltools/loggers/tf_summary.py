@@ -25,7 +25,7 @@ class TFSummaryLogger(base.Logger):
         with self._summary.as_default(step=step):
             for key, value in metrics.items():
                 name = "/".join([self._label, key])
-                lvs = len(value.shape) if hasattr(value, 'shape') else 0
+                lvs = len(value.shape) if hasattr(value, "shape") else 0
                 if lvs == 0:
                     tf.summary.scalar(name, value)
                 elif lvs == 1:

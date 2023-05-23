@@ -12,6 +12,7 @@ ObservationSpec = MutableMapping[str, specs.Array]
 
 
 class EnvironmentSpecs(NamedTuple):
+    """Complete environment specification."""
     observation_spec: ObservationSpec
     action_spec: ActionSpec
     reward_spec: specs.Array
@@ -31,7 +32,7 @@ class Wrapper:
         All the methods are no-op by default.
         Child class supposed to implement any of them
             and make corresponding changes to specs methods.
-        However, one may decide to avoid calling this
+        However, one may avoid calling this
             and directly reimplement step/reset of dm_env.Environment.
         """
         # pylint: disable-next=protected-access

@@ -10,9 +10,11 @@ from rltools.dmc_wrappers.time_limit import TimeLimit
 from rltools.dmc_wrappers.vectorize import AsyncEnv, SequentialEnv
 
 try:
-    from rltools.dmc_wrappers.gym_adapter import DmcToGym, GymToDmc
+    from rltools.dmc_wrappers.gymnasium_adapter import (
+        DmcToGymnasium, GymnasiumToDmc
+    )
 except ImportError:
     import logging
-    logging.info("Skipping gym")
+    logging.info("Skipping gymnasium")
 
 from rltools.dmc_wrappers.base import EnvironmentSpecs

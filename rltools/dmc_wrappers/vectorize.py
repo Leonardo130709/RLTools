@@ -28,6 +28,7 @@ def _worker(ctor: _EnvFactory,
             pipe: mp.connection.Connection,
             parent_pipe: mp.connection.Connection
             ) -> None:
+    """Run environment loop."""
     parent_pipe.close()
     env = ctor()
     comm = None
@@ -90,7 +91,7 @@ class AsyncEnv(dm_env.Environment):
         self._setup_specs()
 
         self._parent_pipes, self._processes = [], []
-        for idx, env_fn in enumerate(self.env_fns):
+        for env_fn in self.env_fns:
             parent_pipe, child_pipe = ctx.Pipe()
             process = ctx.Process(
                 target=_worker,
