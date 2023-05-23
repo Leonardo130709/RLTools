@@ -10,7 +10,7 @@ def get_version():
 	return version
 
 
-_dmc_wrappers_req = ["dm_env"]
+_dmc_wrappers_req = ["dm_env", "cloudpickle"]
 _loggers_req = ["tensorflow"]
 _config_req = ["ruamel.YAML"]
 _all_req = _dmc_wrappers_req + _loggers_req + _config_req
