@@ -1,3 +1,4 @@
+cloudpickle
 dm_env
 gym<0.26
 numpy

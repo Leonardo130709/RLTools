@@ -22,11 +22,11 @@ class StatesWrapper(base.Wrapper):
             np.prod(ar.shape)
             for ar in self.env.observation_spec().values()
         )
-        return {
+        return type(self.env.observation_spec())({
             FLAT_OBSERVATION_KEY: dm_env.specs.Array(
                 shape=(int(dim),), dtype=np.float32,
                 name=FLAT_OBSERVATION_KEY)
-        }
+        })
 
 
 # taken directly from dm_control rep.

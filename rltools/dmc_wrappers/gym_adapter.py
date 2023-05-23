@@ -6,13 +6,9 @@ import dm_env.specs
 
 from rltools.dmc_wrappers import base
 
-try:
-    import gym
-    if (_ver := gym.__version__) >= "0.26":
-        print(f"Incompatible gym version: {_ver}")
-except ImportError:
-    print("gym<0.26 is required to use gym API.")
-    raise
+import gym
+if gym.__version__ >= "0.26":
+    raise ImportError("gym<0.26 is required to use gym API.")
 
 
 # TODO: update gymnasium API.
@@ -20,11 +16,11 @@ class DmcToGym:
     """ Unpacks dm_env.TimeStep to gym-like tuple. Cannot be wrapped further."""
 
     def __init__(self, env: dm_env.Environment) -> None:
-        self._env = env
+        self.env = env
 
     def step(self, action: np.ndarray
              ) -> tuple[base.Observation, float, bool, float]:
-        timestep = self._env.step(action)
+        timestep = self.env.step(action)
         obs = timestep.observation
         done = timestep.last()
         reward = timestep.reward
@@ -32,17 +28,17 @@ class DmcToGym:
         return obs, reward, done, discount
 
     def reset(self) -> base.Observation:
-        return self._env.reset().observation
+        return self.env.reset().observation
 
     @property
     def action_space(self) -> gym.spaces.Box:
-        spec = self._env.action_spec()
+        spec = self.env.action_spec()
         return gym.spaces.Box(
             spec.minimum, spec.maximum, spec.shape, spec.dtype)
 
     @property
     def observation_space(self) -> MutableMapping[str, gym.spaces.Space]:
-        spec = self._env.observation_spec()
+        spec = self.env.observation_spec()
 
         def convert_fn(sp):
             if isinstance(sp, dm_env.specs.BoundedArray):
@@ -59,20 +55,20 @@ class GymToDmc:
     """Convert tuple to a proper dm_env.Timestep namedtuple."""
 
     def __init__(self, env: gym.Env) -> None:
-        self._env = env
+        self.env = env
 
     def reset(self) -> dm_env.TimeStep:
-        obs = self._env.reset()
+        obs = self.env.reset()
         return dm_env.restart(obs)
 
     def step(self, action: np.ndarray) -> dm_env.TimeStep:
-        obs, reward, done, _ = self._env.step(action)
+        obs, reward, done, _ = self.env.step(action)
         if done:
             return dm_env.termination(reward, obs)
         return dm_env.transition(reward, obs, discount=1.)
 
     def action_spec(self) -> dm_env.specs.BoundedArray:
-        space = self._env.action_space
+        space = self.env.action_space
         if isinstance(space, gym.spaces.Box):
             return dm_env.specs.BoundedArray(
                 minimum=space.low,
@@ -83,7 +79,7 @@ class GymToDmc:
         raise NotImplementedError
 
     def observation_spec(self) -> base.ObservationSpec:
-        space = self._env.observation_space
+        space = self.env.observation_space
 
         def convert_fn(sp):
             if np.any(sp.low == -np.inf) and np.any(sp.high == np.inf):

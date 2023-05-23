@@ -57,6 +57,24 @@ def _worker(ctor: _EnvFactory,
         env.close()
 
 
+class CloudpickleWrapper:
+    """Taken from Gymnasium https://github.com/Farama-Foundation/Gymnasium."""
+
+    def __init__(self, fn: Callable[[], dm_env.Environment]) -> None:
+        self.fn = fn
+
+    def __getstate__(self):
+        import cloudpickle
+        return cloudpickle.dumps(self.fn)
+
+    def __setstate__(self, ob):
+        import pickle
+        self.fn = pickle.loads(ob)
+
+    def __call__(self):
+        return self.fn()
+
+
 # TODO: add support for arbitrary method or attr call.
 class AsyncEnv(dm_env.Environment):
     """Creates multiple environment instances and calls them simultaneously
@@ -76,7 +94,7 @@ class AsyncEnv(dm_env.Environment):
             parent_pipe, child_pipe = ctx.Pipe()
             process = ctx.Process(
                 target=_worker,
-                args=(env_fn, child_pipe, parent_pipe)
+                args=(CloudpickleWrapper(env_fn), child_pipe, parent_pipe)
             )
             self._parent_pipes.append(parent_pipe)
             self._processes.append(process)
